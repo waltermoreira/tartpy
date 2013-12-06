@@ -47,4 +47,16 @@ def stateful_beh(state):
 stateful = sponsor.create(stateful_beh({'key': 5}))
 
 
-    
+class Test(Actor):
+
+    def __init__(self):
+        super().__init__(self.first_beh, sponsor)
+        
+    def first_beh(self, message):
+        print("First: {}".format(message))
+        self.behavior = self.second_beh
+
+    def second_beh(self, message):
+        print("Second: {}".format(message))
+        self.behavior = self.first_beh
+        
