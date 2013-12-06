@@ -28,3 +28,23 @@ def spawn(f, args, method='thread'):
         p = multiprocessing.Process(target=f, args=(args,))
         p.start()
 
+        
+sponsor = Sponsor()
+
+
+def stateless_beh(message):
+    print("Got message: {}".format(message))
+    
+stateless = sponsor.create(stateless_beh)
+
+
+def stateful_beh(state):
+    def _f(message):
+        print("Have state: {}".format(state))
+        print("Got message: {}".format(message))
+    return _f
+
+stateful = sponsor.create(stateful_beh({'key': 5}))
+
+
+    
