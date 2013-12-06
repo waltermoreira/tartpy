@@ -16,8 +16,8 @@ class Actor(object):
         self.behavior = behavior
         self.sponsor = sponsor
 
-    def send(self, message):
-        spawn(self.behavior, message, method='process')
+    def send(self, message, method='thread'):
+        spawn(self.behavior, message, method)
 
 
 def spawn(f, args, method='thread'):
