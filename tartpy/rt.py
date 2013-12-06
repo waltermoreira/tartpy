@@ -2,24 +2,14 @@ import os
 import multiprocessing
 import threading
 
-class Sponsor(object):
-
-    def __init__(self):
-        print('Sponsor pid: {}'.format(os.getpid()))
-
-    def create(self, behavior):
-        return Actor(behavior, self)
-
 class Actor(object):
-
-    def __init__(self, behavior, sponsor):
-        self.behavior = behavior
-        self.sponsor = sponsor
 
     def send(self, message, method='thread'):
         spawn(self.behavior, message, method)
 
-
+    def create(self, actor, *args):
+        return actor(*args)
+    
 def spawn(f, args, method='thread'):
     if method == 'thread':
         t = threading.Thread(target=f, args=(args,))
@@ -28,29 +18,31 @@ def spawn(f, args, method='thread'):
         p = multiprocessing.Process(target=f, args=(args,))
         p.start()
 
-        
-sponsor = Sponsor()
 
-
-def stateless_beh(message):
-    print("Got message: {}".format(message))
-    
-stateless = sponsor.create(stateless_beh)
-
-
-def stateful_beh(state):
-    def _f(message):
-        print("Have state: {}".format(state))
-        print("Got message: {}".format(message))
-    return _f
-
-stateful = sponsor.create(stateful_beh({'key': 5}))
-
-
-class Test(Actor):
+class Stateless(Actor):
 
     def __init__(self):
-        super().__init__(self.first_beh, sponsor)
+        self.behavior = self.stateless_beh
+
+    def stateless_beh(self, message):
+        print("Got message: {}".format(message))
+        
+
+class Stateful(Actor):
+
+    def __init__(self, state):
+        self.state = state
+        self.behavior = self.stateful_beh
+    
+    def stateful_beh(self, message):
+        print("Have state: {}".format(self.state))
+        print("Got message: {}".format(message))
+
+
+class FlipFlop(Actor):
+
+    def __init__(self):
+        self.behavior = self.first_beh
         
     def first_beh(self, message):
         print("First: {}".format(message))
@@ -59,4 +51,18 @@ class Test(Actor):
     def second_beh(self, message):
         print("Second: {}".format(message))
         self.behavior = self.first_beh
-        
+
+
+class Chain(Actor):
+
+    def __init__(self, count):
+        self.count = count
+        self.behavior = self.chain_beh
+
+    def chain_beh(self, message):
+        if self.count > 0:
+            self.count -= 1
+            print("Chain: {}".format(self.count))
+            next = self.create(Chain, self.count)
+            next.send(message)
+    
