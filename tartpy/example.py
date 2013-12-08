@@ -46,9 +46,8 @@ class Chain(rt.Actor):
 
     def chain_beh(self, message):
         if self.count > 0:
-            self.count -= 1
             print("Chain: {}".format(self.count))
-            next = self.create(Chain, self.count)
+            next = self.create(Chain, self.count - 1)
             next(message)
 
 stateless = Stateless()
