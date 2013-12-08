@@ -2,7 +2,7 @@
 tart.py
 =======
 
-Python implementation inspired from `tart.js <https://github.com/organix/tartjs>`.
+Python implementation inspired from `tart.js <https://github.com/organix/tartjs>`_.
 
 Differences
 ===========
