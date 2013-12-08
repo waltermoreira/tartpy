@@ -1,12 +1,13 @@
 import queue
-import multiprocessing
 import threading
+
 
 def loop(queue, actor):
     while True:
         message = queue.get()
         actor.behavior(message)
-    
+
+        
 class Actor(object):
 
     def __init__(self):
