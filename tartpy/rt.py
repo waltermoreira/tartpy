@@ -1,15 +1,23 @@
+import queue
 import multiprocessing
 import threading
 
+def loop(queue, actor):
+    while True:
+        message = queue.get()
+        actor.behavior(message)
+    
 class Actor(object):
 
-    def _spawn_method(self):
-        return threading.Thread
-        # return multiprocessing.Process
+    def __init__(self):
+        self.queue = queue.Queue()
+        self.dispatcher = threading.Thread(
+            target=loop,
+            args=(self.queue, self))
+        self.dispatcher.start()
 
     def __call__(self, message):
-        spawn = self._spawn_method()
-        spawn(target=self.behavior, args=(message,)).start()
+        self.queue.put(message)
 
     def create(self, actor, *args):
         return actor(*args)
