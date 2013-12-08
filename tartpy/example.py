@@ -50,19 +50,49 @@ class Chain(rt.Actor):
             next = self.create(Chain, self.count - 1)
             next(message)
 
-stateless = Stateless()
-stateless('some message')
-stateless('more message')
+            
+class Echo(rt.Actor):
 
-stateful = Stateful({'state': 5})
-stateful({'some': 'other message'})
-stateful(10)
+    def __init__(self):
+        super().__init__()
+        self.behavior = self.echo_beh
 
-flipflop = FlipFlop()
-flipflop('first')
-flipflop('second')
-flipflop('third')
-flipflop('fourth')
+    def echo_beh(self, message):
+        message['reply_to']({'answer': message})
 
-chain = Chain(10)
-chain('go')
+        
+class Printer(rt.Actor):
+    
+    def __init__(self):
+        super().__init__()
+        self.behavior = self.print_beh
+
+    def print_beh(self, message):
+        print('Got', message)
+        
+
+def test():
+    stateless = Stateless()
+    stateless('some message')
+    stateless('more message')
+
+    stateful = Stateful({'state': 5})
+    stateful({'some': 'other message'})
+    stateful(10)
+
+    flipflop = FlipFlop()
+    flipflop('first')
+    flipflop('second')
+    flipflop('third')
+    flipflop('fourth')
+
+    chain = Chain(10)
+    chain('go')
+
+    echo = Echo()
+    printer = Printer()
+    echo({'reply_to': printer})
+
+
+if __name__ == '__main__':
+    test()
