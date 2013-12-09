@@ -47,7 +47,7 @@ class Chain(rt.Actor):
     def chain_beh(self, message):
         if self.count > 0:
             print("Chain: {}".format(self.count))
-            next = self.create(Chain, self.count - 1)
+            next = Chain.create(self.count - 1)
             next(message)
 
             
@@ -72,25 +72,25 @@ class Printer(rt.Actor):
         
 
 def test():
-    stateless = Stateless()
+    stateless = Stateless.create()
     stateless('some message')
     stateless('more message')
 
-    stateful = Stateful({'state': 5})
+    stateful = Stateful.create({'state': 5})
     stateful({'some': 'other message'})
     stateful(10)
 
-    flipflop = FlipFlop()
+    flipflop = FlipFlop.create()
     flipflop('first')
     flipflop('second')
     flipflop('third')
     flipflop('fourth')
 
-    chain = Chain(10)
+    chain = Chain.create(10)
     chain('go')
 
-    echo = Echo()
-    printer = Printer()
+    echo = Echo.create()
+    printer = Printer.create()
     echo({'reply_to': printer})
 
 

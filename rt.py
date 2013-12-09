@@ -11,14 +11,20 @@ def loop(queue, actor):
 class Actor(object):
 
     def __init__(self):
+        pass
+        
+    def _start_loop(self):
         self.queue = queue.Queue()
         self.dispatcher = threading.Thread(
             target=loop,
             args=(self.queue, self))
         self.dispatcher.start()
-
+        
     def __call__(self, message):
         self.queue.put(message)
 
-    def create(self, actor, *args):
-        return actor(*args)
+    @classmethod
+    def create(cls, *args):
+        actor = cls(*args)
+        actor._start_loop()
+        return actor
