@@ -21,4 +21,13 @@ Run example with:
 
 Press ``Ctrl-C`` to stop the event loops and exit.
 
-   
+Erlang Challenge
+================
+
+Create a ring of ``M`` actors, sending ``N`` messages around the ring:
+
+.. code-block:: bash
+
+   python3 erlang_challenge.py M N
+
+No benchmarks yet.
