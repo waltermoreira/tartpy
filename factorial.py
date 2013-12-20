@@ -1,28 +1,20 @@
-import rt
+from rt import Actor, initial_behavior
 
-class Factorial(rt.Actor):
+class Factorial(Actor):
 
-    def __init__(self):
-        super().__init__()
-        self.behavior = self.factorial_beh
-
+    @initial_behavior
     def factorial_beh(self, message):
         customer, n = message
         if n == 0:
             customer(1)
         else:
-            multiply_by_n = Multiplier.create(customer, n)
+            multiply_by_n = Multiplier.create(customer=customer, n=n)
             self((multiply_by_n, n-1))
 
 
-class Multiplier(rt.Actor):
+class Multiplier(Actor):
 
-    def __init__(self, customer, n):
-        super().__init__()
-        self.customer = customer
-        self.n = n
-        self.behavior = self.multiplier_beh
-
+    @initial_behavior
     def multiplier_beh(self, m):
         self.customer(m * self.n)
         

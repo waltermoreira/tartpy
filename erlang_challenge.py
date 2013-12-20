@@ -1,29 +1,23 @@
 import time
 import sys
-import rt
+from rt import Actor, initial_behavior
 
 construction_start_time = 0
 construction_end_time = 0
 loop_completion_times = []
 
-class RingLink(rt.Actor):
+class RingLink(Actor):
+    # args: next
 
-    def __init__(self, next):
-        super().__init__()
-        self.next = next
-        self.behavior = self.ringlink_beh
-
+    @initial_behavior
     def ringlink_beh(self, n):
         self.next(n)
 
 
-class RingLast(rt.Actor):
-
-    def __init__(self, first):
-        super().__init__()
-        self.first = first
-        self.behavior = self.ringlast_beh
-
+class RingLast(Actor):
+    # args: first
+    
+    @initial_behavior
     def ringlast_beh(self, n):
         loop_completion_times.append(time.time())
         if n > 1:
@@ -48,30 +42,27 @@ class RingLast(rt.Actor):
         print('Average: {} seconds'.format(sum(intervals)/len(intervals)))
 
 
-class RingBuilder(rt.Actor):
+class RingBuilder(Actor):
+    # args: m
 
-    def __init__(self, m):
-        super().__init__()
-        self.m = m
-        self.behavior = self.ringbuilder_beh
-
+    @initial_behavior
     def ringbuilder_beh(self, message):
         if self.m > 0:
-            next = RingBuilder.create(self.m-1)
+            next = RingBuilder.create(m=self.m-1)
             next(message)
-            self.behavior = RingLink(next).behavior
+            self.behavior = RingLink(next=next).behavior
         else:
             global construction_end_time
             construction_end_time = time.time()            
             message['first'](message['n'])
-            self.behavior = RingLast(message['first']).behavior
+            self.behavior = RingLast(first=message['first']).behavior
 
 
 def test(m, n):
     print('Starting {} actor ring'.format(m))
     global construction_start_time
     construction_start_time = time.time()
-    ring = RingBuilder.create(m)
+    ring = RingBuilder.create(m=m)
     ring({'first': ring, 'n': n})
 
 if __name__ == '__main__':
