@@ -65,12 +65,12 @@ class AbstractActor(object, metaclass=MetaActor):
         pass
         
     @classmethod
-    def create(cls, *args, **kwargs):
+    def create(cls, **kwargs):
         sponsor = kwargs.pop('sponsor', None)
         if sponsor is not None:
-            return sponsor.create(cls, *args, **kwargs)
+            return sponsor.create(cls, **kwargs)
         else:
-            actor = cls(*args)
+            actor = cls(**kwargs)
             actor._ensure_loop()
             return actor
 
