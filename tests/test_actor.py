@@ -1,7 +1,9 @@
 import pytest
 from rt import Actor, initial_behavior
 
+
 def test_receive_message():
+    
     class A(Actor):
         @initial_behavior
         def receive_beh(self, message):
@@ -10,7 +12,9 @@ def test_receive_message():
     a = A.create()
     a(5)
 
+    
 def test_create_with_args():
+    
     class A(Actor):
         @initial_behavior
         def receive_beh(self, message):
