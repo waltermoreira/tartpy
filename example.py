@@ -1,33 +1,24 @@
-import rt
+from rt import Actor, initial_behavior
 
-class Stateless(rt.Actor):
 
-    def __init__(self):
-        super().__init__()
-        self.behavior = self.stateless_beh
+class Stateless(Actor):
 
+    @initial_behavior
     def stateless_beh(self, message):
         print("Stateless got message: {}".format(message))
         
 
-class Stateful(rt.Actor):
+class Stateful(Actor):
 
-    def __init__(self, state):
-        super().__init__()
-        self.state = state
-        self.behavior = self.stateful_beh
-    
+    @initial_behavior
     def stateful_beh(self, message):
         print("Have state: {}".format(self.state))
         print("Stateful got message: {}".format(message))
 
 
-class FlipFlop(rt.Actor):
+class FlipFlop(Actor):
 
-    def __init__(self):
-        super().__init__()
-        self.behavior = self.first_beh
-        
+    @initial_behavior
     def first_beh(self, message):
         print("First: {}".format(message))
         self.behavior = self.second_beh
@@ -37,36 +28,26 @@ class FlipFlop(rt.Actor):
         self.behavior = self.first_beh
 
 
-class Chain(rt.Actor):
+class Chain(Actor):
 
-    def __init__(self, count):
-        super().__init__()
-        self.count = count
-        self.behavior = self.chain_beh
-
+    @initial_behavior
     def chain_beh(self, message):
         if self.count > 0:
             print("Chain: {}".format(self.count))
-            next = Chain.create(self.count - 1)
+            next = Chain.create(count=self.count - 1)
             next(message)
 
             
-class Echo(rt.Actor):
+class Echo(Actor):
 
-    def __init__(self):
-        super().__init__()
-        self.behavior = self.echo_beh
-
+    @initial_behavior
     def echo_beh(self, message):
         message['reply_to']({'answer': message})
 
         
-class Printer(rt.Actor):
+class Printer(Actor):
     
-    def __init__(self):
-        super().__init__()
-        self.behavior = self.print_beh
-
+    @initial_behavior
     def print_beh(self, message):
         print('Got', message)
         
@@ -76,7 +57,7 @@ def test():
     stateless('some message')
     stateless('more message')
 
-    stateful = Stateful.create({'state': 5})
+    stateful = Stateful.create(state={'key': 5})
     stateful({'some': 'other message'})
     stateful(10)
 
@@ -86,7 +67,7 @@ def test():
     flipflop('third')
     flipflop('fourth')
 
-    chain = Chain.create(10)
+    chain = Chain.create(count=10)
     chain('go')
 
     echo = Echo.create()
