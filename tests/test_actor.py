@@ -61,3 +61,37 @@ def test_one_shot():
 
     one_shot('first')
     one_shot('second')
+
+    
+def test_serial():
+
+    class Serial(Actor):
+        # args: first, second, third
+
+        @initial_behavior
+        def first_beh(self, msg):
+            self.behavior = self.second_beh
+            assert msg == 'foo'
+            assert self.first is False
+            assert self.second is False
+            assert self.third is False
+            self.first = True
+            self(msg)
+            self(msg)
+
+        def second_beh(self, msg):
+            self.behavior = self.third_beh
+            assert msg == 'foo'
+            assert first is True
+            assert second is False
+            assert self.third is False
+            self.second = True
+
+        def third_beh(self, msg):
+            assert msg == 'foo'
+            assert first is True
+            assert second is True
+            assert self.third is False
+
+    serial = Serial.create(first=False, second=False, third=False)
+    
