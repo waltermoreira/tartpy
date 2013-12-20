@@ -14,6 +14,20 @@ def global_loop(queue):
         actor.behavior(message)
 
 
+def initial_behavior(f):
+    f.initial_behavior = True
+    return f
+        
+
+class MetaActor(type):
+
+    def __new__(mcls, name, bases, dict):
+        for meth in list(dict.values()):
+            if getattr(meth, 'initial_behavior', False):
+                dict['behavior'] = meth
+        return type.__new__(mcls, name, bases, dict)
+        
+        
 class EventLoop(object):
 
     loop = None
@@ -36,8 +50,11 @@ class EventLoop(object):
         return cls.loop
                     
 
-class AbstractActor(object):
+class AbstractActor(object, metaclass=MetaActor):
 
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        
     def __call__(self, message):
         self._put(message)
 
