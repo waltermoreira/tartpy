@@ -48,10 +48,14 @@ class AbstractActor(object):
         pass
         
     @classmethod
-    def create(cls, *args):
-        actor = cls(*args)
-        actor._ensure_loop()
-        return actor
+    def create(cls, *args, **kwargs):
+        sponsor = kwargs.pop('sponsor', None)
+        if sponsor is not None:
+            return sponsor.create(cls, *args, **kwargs)
+        else:
+            actor = cls(*args)
+            actor._ensure_loop()
+            return actor
 
 
 class ActorOwnLoop(AbstractActor):
