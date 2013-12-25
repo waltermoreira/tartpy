@@ -56,9 +56,6 @@ class AbstractActor(object, metaclass=MetaActor):
         self.__dict__.update(kwargs)
         
     def __call__(self, message):
-        self._put(message)
-
-    def _put(self, message):
         raise NotImplementedError()
 
     def _ensure_loop(self):
@@ -77,7 +74,7 @@ class AbstractActor(object, metaclass=MetaActor):
 
 class ActorOwnLoop(AbstractActor):
 
-    def _put(self, message):
+    def __call__(self, message):
         self.queue.put(message)
         
     def _ensure_loop(self):
@@ -96,7 +93,7 @@ class ActorOwnLoop(AbstractActor):
         
 class ActorGlobalLoop(AbstractActor):
 
-    def _put(self, message):
+    def __call__(self, message):
         self.loop.schedule(message, self)
 
     def _ensure_loop(self):
