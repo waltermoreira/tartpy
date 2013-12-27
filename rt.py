@@ -1,17 +1,7 @@
 import queue
 import threading
 
-
-def indiviual_loop(queue, actor):
-    while True:
-        message = queue.get()
-        actor.behavior(message)
-
-
-def global_loop(queue):
-    while True:
-        actor, message = queue.get()
-        actor.behavior(message)
+import eventloop
 
 
 def initial_behavior(f):
@@ -28,32 +18,11 @@ class MetaActor(type):
         return type.__new__(mcls, name, bases, dict)
         
         
-class EventLoop(object):
-
-    loop = None
-    
-    def __init__(self):
-        self.queue = queue.Queue()
-        self.thread = threading.Thread(
-            target=global_loop,
-            args=(self.queue,),
-            name='global-loop')
-        self.thread.start()
-
-    def schedule(self, message, target):
-        self.queue.put((target, message))
-        
-    @classmethod
-    def get_loop(cls):
-        if cls.loop is None:
-            cls.loop = cls()
-        return cls.loop
-                    
-
 class AbstractActor(object, metaclass=MetaActor):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+        self._ensure_loop()
         
     def __call__(self, message):
         raise NotImplementedError()
@@ -80,7 +49,7 @@ class ActorOwnLoop(AbstractActor):
     def _ensure_loop(self):
         self.queue = queue.Queue()
         self.dispatcher = threading.Thread(
-            target=indiviual_loop,
+            target=eventloop.individual_loop,
             args=(self.queue, self),
             name=self._thread_name())
         self.dispatcher.start()
@@ -97,7 +66,7 @@ class ActorGlobalLoop(AbstractActor):
         self.loop.schedule(message, self)
 
     def _ensure_loop(self):
-        self.loop = EventLoop.get_loop()
+        self.loop = eventloop.ThreadedEventLoop.get_loop()
 
 
 Actor = ActorGlobalLoop
