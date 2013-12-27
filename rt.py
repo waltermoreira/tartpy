@@ -69,4 +69,14 @@ class ActorGlobalLoop(AbstractActor):
         self.loop = eventloop.ThreadedEventLoop.get_loop()
 
 
-Actor = ActorGlobalLoop
+class ActorManualLoop(AbstractActor):
+
+    def __call__(self, message):
+        self.loop.schedule(message, self)
+    
+    def _ensure_loop(self):
+        self.loop = eventloop.ManualEventLoop.get_loop()
+
+        
+Actor = ActorOwnLoop
+#Actor = ActorGlobalLoop
