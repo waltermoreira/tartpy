@@ -1,6 +1,7 @@
 import pytest
-from rt import ActorManualLoop, initial_behavior
 
+from rt import ActorManualLoop, initial_behavior
+from sponsor import SimpleSponsor
 
 def test_receive_message():
     
@@ -93,3 +94,15 @@ def test_serial():
     assert serial.first_behavior == (False, False, False)
     assert serial.second_behavior == (True, False, False)
     assert serial.third_behavior == (True, True, False)
+
+def test_simple_sponsor():
+
+    class A(ActorManualLoop):
+        @initial_behavior
+        def beh(self, message):
+            pass
+
+    sponsor = SimpleSponsor()
+    a = A.create(key=1, sponsor=sponsor)
+    assert sponsor.actors == [(A, {'key': 1, 'sponsor': sponsor})]
+    assert a.sponsor == sponsor
