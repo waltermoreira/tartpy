@@ -77,5 +77,6 @@ class ActorManualLoop(AbstractActor):
         self.loop = eventloop.ManualEventLoop.get_loop()
 
         
-Actor = ActorOwnLoop
+#Actor = ActorOwnLoop
 #Actor = ActorGlobalLoop
+Actor = ActorManualLoop
