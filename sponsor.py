@@ -3,6 +3,9 @@ class AbstractSponsor(object):
     def create(self, cls, **kwargs):
         raise NotImplementedError()
 
+    def error(self, actor, message):
+        raise NotImplementedError()
+        
 
 class SimpleSponsor(AbstractSponsor):
 
@@ -14,3 +17,5 @@ class SimpleSponsor(AbstractSponsor):
         actor = cls(**kwargs)
         return actor
 
+    def error(self, actor, message):
+        print('ERROR (Actor {0}): {1}'.format(actor, message))
