@@ -29,7 +29,16 @@ class AbstractActor(object, metaclass=MetaActor):
 
     def _ensure_loop(self):
         pass
-        
+
+    def error(self, message):
+        if self.sponsor is not None:
+            self.sponsor.error(self, message)
+        else:
+            self._error(message)
+
+    def _error(self, message):
+        print('ERROR: {0}'.format(message))
+            
     @classmethod
     def create(cls, **kwargs):
         sponsor = kwargs.get('sponsor', None)
