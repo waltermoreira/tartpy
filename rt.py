@@ -85,6 +85,8 @@ class ActorManualLoop(AbstractActor):
     def _ensure_loop(self):
         self.loop = eventloop.ManualEventLoop.get_loop()
 
+    def run(self):
+        self.loop.run()
         
 #Actor = ActorOwnLoop
 #Actor = ActorGlobalLoop
