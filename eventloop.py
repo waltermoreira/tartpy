@@ -8,14 +8,15 @@ def individual_loop(queue, actor):
         actor.behavior(message)
 
 
-def loop_step(queue, block=False):
+        
+def global_loop_step(queue, block=False):
     actor, message = queue.get(block=block)
     actor.behavior(message)
 
 
 def global_loop(queue):
     while True:
-        loop_step(queue, block=True)
+        global_loop_step(queue, block=True)
 
 
 class EventLoop(object):
@@ -51,7 +52,7 @@ class ManualEventLoop(EventLoop):
     def run(self):
         try:
             while True:
-                loop_step(self.queue)
+                global_loop_step(self.queue)
         except queue.Empty:
             return
             
