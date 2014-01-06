@@ -2,11 +2,14 @@ import queue
 import threading
 
 
+def individual_loop_step(queue, actor, block=True):
+    message = queue.get(block=block)
+    return actor.behavior(message)
+
+    
 def individual_loop(queue, actor):
     while True:
-        message = queue.get()
-        actor.behavior(message)
-
+        individual_loop_step(queue, actor)
 
         
 def global_loop_step(queue, block=False):
