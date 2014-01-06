@@ -88,6 +88,22 @@ class ActorManualLoop(AbstractActor):
     def run(self):
         self.loop.run()
         
+
+class ActorOwnManualLoop(AbstractActor):
+
+    def __call__(self, message):
+        self.queue.put(message)
+
+    def _ensure_loop(self):
+        self.queue = queue.Queue()
+        
+    def run(self):
+        eventloop.individual_loop(self.queue, self)
+
+    def act(self):
+        return eventloop.individual_loop_step(self.queue, self)
+        
+
 #Actor = ActorOwnLoop
 #Actor = ActorGlobalLoop
 Actor = ActorManualLoop
