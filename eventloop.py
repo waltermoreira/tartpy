@@ -1,10 +1,25 @@
 import queue
+import sys
 import threading
+import traceback
 
+
+def _format_exception(exc_info):
+    exc_type, exc_value, exc_tb = exc_info
+    return {'exception': {'type': exc_type,
+                          'value': exc_value,
+                          'traceback': exc_tb},
+            'traceback': traceback.format_exception(*exc_info)}
+    
 
 def individual_loop_step(queue, actor, block=True):
     message = queue.get(block=block)
-    return actor.behavior(message)
+    try:
+        return actor.behavior(message)
+    except Exception as exc:
+        err = _format_exception(sys.exc_info())
+        actor.error(err)
+        return err
 
     
 def individual_loop(queue, actor):
@@ -14,7 +29,10 @@ def individual_loop(queue, actor):
         
 def global_loop_step(queue, block=False):
     actor, message = queue.get(block=block)
-    actor.behavior(message)
+    try:
+        actor.behavior(message)
+    except Exception as exc:
+        actor.error(_format_exception(sys.exc_info()))
 
 
 def global_loop(queue):
