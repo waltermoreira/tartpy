@@ -104,6 +104,13 @@ class ActorOwnManualLoop(AbstractActor):
         return eventloop.individual_loop_step(self.queue, self)
         
 
-#Actor = ActorOwnLoop
+class Wait(ActorOwnManualLoop):
+
+    @initial_behavior
+    def wait_beh(self, message):
+        return message
+        
+        
+Actor = ActorOwnLoop
 #Actor = ActorGlobalLoop
-Actor = ActorManualLoop
+#Actor = ActorManualLoop
