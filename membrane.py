@@ -105,12 +105,26 @@ class Proxy(Actor):
 
 
 def test():
-    m = Membrane.create(uid_to_proxy={}, proxy_to_uid={},
-                        transport={'protocol': 'null'})
+    m1 = Membrane.create(uid_to_proxy={}, proxy_to_uid={},
+                         transport={'protocol': 'null'})
+    m2 = Membrane.create(uid_to_proxy={}, proxy_to_uid={},
+                         transport={'protocol': 'null'})
+    m1('start')
+    m2('start')
+    
     pr = Printer.create()
     w = Wait.create()
-    m('start')
-    m({'get_uid': pr,
-       'reply_to': w})
-    print('uid:', w.act())
-    return m
+
+    m2({'get_uid': pr,
+        'reply_to': w})
+    pr_uid = w.act()['uid']
+
+    m1({'create_proxy': pr_uid,
+        'transport': {'protocol': 'null',
+                      'membrane': m2},
+        'reply_to': w})
+    proxy = w.act()['proxy']
+
+    proxy({'foo': 5})
+    
+    return m1, m2
