@@ -34,6 +34,23 @@ Messages to the actor ``foo`` are sent with::
 
     foo(arbitrary_message)
 
+
+Exports
+-------
+
+- ``ActorOwnLoop``: actor with independent event loop
+
+- ``ActorGlobalLoop``: actor using a global event loop
+
+- ``ActorManualLoop``: actor using a global event loop, that
+                       can be run step-wise
+
+- ``ActorOwnManualLoop``: actor with a full step-wise loop
+
+- ``Wait``: actor that waits (and blocks) for messages
+
+- ``initial_behavior``: decorator for actor entry point
+
 """
 
 
