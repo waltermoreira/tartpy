@@ -93,7 +93,18 @@ class AbstractActor(object, metaclass=MetaActor):
         To *create* an actor use the classmethod ``create``.
 
         """
+        self.setup()
         self.__dict__.update(kwargs)
+
+    def setup(self):
+        """Easy hook for initializing state.
+
+        To avoid having to overload the __init__ method and having to
+        call super, this method can be used to set instance variables
+        in the actor.
+
+        """
+        pass
         
     def __call__(self, message):
         """Send messages.

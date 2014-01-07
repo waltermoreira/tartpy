@@ -1,8 +1,9 @@
 import pytest
 
-from rt import ActorManualLoop, initial_behavior
+from rt import ActorManualLoop, ActorOwnManualLoop, initial_behavior
 from sponsor import SimpleSponsor
 
+    
 def test_receive_message():
     
     class A(ActorManualLoop):
@@ -106,3 +107,24 @@ def test_simple_sponsor():
     a = A.create(key=1, sponsor=sponsor)
     assert sponsor.actors == [(A, {'key': 1, 'sponsor': sponsor})]
     assert a.sponsor == sponsor
+
+def test_setup():
+
+    class A(ActorOwnManualLoop):
+
+        def setup(self):
+            self.foo = 5
+
+        @initial_behavior
+        def beh(self, message):
+            return self.foo
+
+    a = A.create()
+    a(0)
+    x = a.act()
+    assert x == 5
+    
+    b = A.create(foo=3)
+    b(0)
+    y = b.act()
+    assert y == 3
