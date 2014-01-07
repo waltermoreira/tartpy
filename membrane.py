@@ -13,6 +13,7 @@ class Membrane(Actor):
     @initial_behavior
     def start_beh(self, message):
         if message != 'start':
+            self.error('membrane is not started yet')
             return
         self.start_server(self.transport)
         self.behavior = self.membrane_beh
