@@ -26,6 +26,8 @@ class Membrane(Actor):
         if 'create_proxy' in message:
             uid = message['create_proxy']
             proxy = self.get_proxy(uid)
+            proxy.transport = message.get('transport', {'protocol': 'null',
+                                                        'membrane': self})
             message['reply_to']({'proxy': proxy})
         if '_from' in message:
             proxy = message['_from']
