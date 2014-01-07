@@ -87,7 +87,9 @@ class Membrane(Actor):
         server_impl(transport)
 
     def null(self, transport, to, msg):
-        self({'_to': to, '_msg': msg})
+        target_membrane = transport['membrane']
+        target_membrane({'_to': to, '_msg': msg})
+        return True
 
     def null_server(self, transport):
         pass
