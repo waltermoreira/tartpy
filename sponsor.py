@@ -15,6 +15,7 @@ class SimpleSponsor(AbstractSponsor):
     def create(self, cls, **kwargs):
         self.actors.append((cls, kwargs))
         actor = cls(**kwargs)
+        actor._ensure_loop()
         return actor
 
     def error(self, actor, message):

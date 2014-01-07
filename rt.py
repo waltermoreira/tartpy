@@ -22,7 +22,6 @@ class AbstractActor(object, metaclass=MetaActor):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        self._ensure_loop()
         
     def __call__(self, message):
         raise NotImplementedError()
@@ -46,6 +45,7 @@ class AbstractActor(object, metaclass=MetaActor):
             return sponsor.create(cls, **kwargs)
         else:
             actor = cls(**kwargs)
+            actor._ensure_loop()
             return actor
 
 
