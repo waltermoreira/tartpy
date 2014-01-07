@@ -10,6 +10,9 @@ In general, an actor is declared as::
 
     class Foo(Actor):
 
+        def setup(self):
+            # set initial state variables, if necessary
+
         @initial_behavior
         def foo_beh(self, message):
             ...
