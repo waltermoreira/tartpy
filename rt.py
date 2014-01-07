@@ -31,7 +31,7 @@ class AbstractActor(object, metaclass=MetaActor):
         pass
 
     def error(self, message):
-        if self.sponsor is not None:
+        if getattr(self, 'sponsor', None) is not None:
             self.sponsor.error(self, message)
         else:
             self._error(message)
