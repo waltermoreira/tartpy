@@ -35,7 +35,7 @@ class Membrane(Actor):
         if '_from' in message:
             proxy = message['_from']
             uid = self.get_uid(proxy)
-            msg = self.export_message(message['_original_msg'])
+            msg = self.export_message(message['_msg'])
             self.send(to=uid, msg=msg, transport=proxy.transport)
         if '_to' in message:
             rcpt_uid = message['_to']
@@ -104,7 +104,7 @@ class Proxy(Actor):
     @initial_behavior
     def proxy_beh(self, message):
         self.membrane({'_from': self,
-                       '_original_msg': message})
+                       '_msg': message})
 
 
 def test():
