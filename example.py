@@ -54,25 +54,25 @@ class Printer(Actor):
 
 def test():
     stateless = Stateless.create()
-    stateless('some message')
-    stateless('more message')
+    stateless << 'some message'
+    stateless << 'more message'
 
     stateful = Stateful.create(state={'key': 5})
-    stateful({'some': 'other message'})
-    stateful(10)
+    stateful << {'some': 'other message'}
+    stateful << 10
 
     flipflop = FlipFlop.create()
-    flipflop('first')
-    flipflop('second')
-    flipflop('third')
-    flipflop('fourth')
+    flipflop << 'first'
+    flipflop << 'second'
+    flipflop << 'third'
+    flipflop << 'fourth'
 
     chain = Chain.create(count=10)
-    chain('go')
+    chain << 'go'
 
     echo = Echo.create()
     printer = Printer.create()
-    echo({'reply_to': printer})
+    echo << {'reply_to': printer}
 
 
 if __name__ == '__main__':

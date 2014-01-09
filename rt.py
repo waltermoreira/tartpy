@@ -117,6 +117,16 @@ class AbstractActor(object, metaclass=MetaActor):
         """
         raise NotImplementedError()
 
+    def __lshift__(self, other):
+        """Alternative syntax for sending messages.
+
+        Use::
+
+            actor << message
+
+        """
+        self(other)
+        
     def _ensure_loop(self):
         """Start or make sure the event loop is running."""
         pass
