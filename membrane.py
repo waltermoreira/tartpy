@@ -218,6 +218,7 @@ def test():
     
     pr = Printer.create()
     w = Wait.create()
+    pr1 = Printer.create()
 
     m2({'get_uid': pr,
         'reply_to': w})
@@ -229,6 +230,6 @@ def test():
         'reply_to': w})
     proxy = w.act()['proxy']
 
-    proxy({'foo': 5})
+    proxy({'foo': 5, 'bar': pr1})
     
     return m1, m2
