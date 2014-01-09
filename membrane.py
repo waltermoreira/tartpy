@@ -6,10 +6,13 @@ from example import Printer
 
 
 class Membrane(Actor):
-    # args: uid_to_proxy = {uid:actor}, proxy_to_uid = {proxy:uid},
-    #       transport = {protocol: tcp|udp|http|...,
+    # args: transport = {protocol: tcp|udp|http|...,
     #                    ...data to connect...}
 
+    def setup(self):
+        self.uid_to_proxy = {}  # {uid: actor}
+        self.proxy_to_uid = {}  # {proxy: uid}
+        
     @initial_behavior
     def start_beh(self, message):
         if message != 'start':
