@@ -49,7 +49,7 @@ class Membrane(Actor):
             if isinstance(value, Actor):
                 uid = self.get_uid(value)
                 obj[key] = {'_proxy': uid,
-                            '_transport': self.listeners}
+                            '_transport': self.transport}
         return obj
 
     def import_message(self, obj):
