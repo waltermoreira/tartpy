@@ -208,26 +208,3 @@ class Proxy(Actor):
                        '_msg': message})
 
 
-def test():
-    m1 = Membrane.create(transport={'protocol': 'null'})
-    m2 = Membrane.create(transport={'protocol': 'null'})
-    m1('start')
-    m2('start')
-    
-    pr = Printer.create()
-    w = Wait.create()
-    pr1 = Printer.create()
-
-    m2({'get_uid': pr,
-        'reply_to': w})
-    pr_uid = w.act()['uid']
-
-    m1({'create_proxy': pr_uid,
-        'transport': {'protocol': 'null',
-                      'membrane': m2},
-        'reply_to': w})
-    proxy = w.act()['proxy']
-
-    proxy({'foo': 5, 'bar': pr1})
-    
-    return m1, m2
