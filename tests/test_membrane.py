@@ -39,6 +39,10 @@ def test_membrane():
     assert msg['bar'] == 3
     assert msg['reply_to'] is proxy
     
-
-    
-    
+def test_export():
+    m1 = Membrane.create(transport={'protocol': 'null'})
+    a = Wait.create()
+    obj = m1.export_message({'foo': a})
+    assert '_proxy' in obj['foo']
+    obj = m1.export_message({'foo': {'bar': a}})
+    assert '_proxy' in obj['foo']['bar']

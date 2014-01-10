@@ -89,15 +89,21 @@ class Membrane(Actor):
     def export_message(self, message):
         """Export a message.
 
-        Convert any actor reference to a uid.
+        Convert any actor reference to a uid. Proceed recursively to
+        convert references at any level.
 
         """
-        obj = dict(message)
+        obj = {}
         for key, value in message.items():
             if isinstance(value, AbstractActor):
                 uid = self.get_uid(value)
-                obj[key] = {'_proxy': uid,
-                            '_transport': self.transport}
+                new_value = {'_proxy': uid,
+                             '_transport': self.transport}
+            elif isinstance(value, dict):
+                new_value = self.export_message(value)
+            else:
+                new_value = value
+            obj[key] = new_value
         return obj
 
     def import_message(self, obj):
