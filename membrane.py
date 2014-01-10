@@ -78,7 +78,8 @@ class Membrane(Actor):
             proxy = message['_from']
             uid = self.get_uid(proxy)
             msg = self.export_message(message['_msg'])
-            self.send(to=uid, msg=msg, transport=proxy.transport)
+            to_export = {'_to': uid, '_msg': msg}
+            self.send(to_export, transport=proxy.transport)
         if '_to' in message:
             rcpt_uid = message['_to']
             msg = self.import_message(message['_msg'])
@@ -119,7 +120,7 @@ class Membrane(Actor):
                 message[key] = proxy
         return message
         
-    def send(self, to, msg, transport):
+    def send(self, msg, transport):
         """Send a message to an external membrane.
 
         Deliver the message ``msg`` directed to uid ``to``, using the
@@ -130,13 +131,12 @@ class Membrane(Actor):
         if transport_impl is None:
             self.error('No transport {0}'.format(transport['protocol']))
             return
-        sent = transport_impl(transport, to, msg)
+        sent = transport_impl(msg, transport)
         if not sent:
             self.error('Failed to send message through {0}:\n'
-                       '  to: {1}\n'
-                       '  msg: {2}\n'
-                       '  transport: {3}'.format(transport['protocol'],
-                                                 to, msg, transport))
+                       '  msg: {1}\n'
+                       '  transport: {2}'.format(transport['protocol'],
+                                                 msg, transport))
 
     def get_proxy(self, uid):
         """Convert an uid to an actor."""
@@ -167,7 +167,7 @@ class Membrane(Actor):
         server_impl = getattr(self, '{0}_server'.format(transport['protocol']))
         server_impl(transport)
 
-    def null(self, transport, to, msg):
+    def null(self, msg, transport):
         """Deliver directly to a membrane.
 
         Send message directly to the actor referenced by
@@ -175,7 +175,7 @@ class Membrane(Actor):
 
         """
         target_membrane = transport['membrane']
-        target_membrane({'_to': to, '_msg': msg})
+        target_membrane(msg)
         return True
 
     def null_server(self, transport):
