@@ -189,7 +189,22 @@ class Membrane(Actor):
 
         """
         pass
-        
+
+    @classmethod
+    def add_transport(cls, name, client, server):
+        """Dynamically add a new transport with name ``name``.
+
+        Implement two functions with signature:
+
+        - ``{name}_server(transport)``
+        - ``{name}_client(msg, transport)``
+
+        See ``start_server`` for details.
+
+        """
+        setattr(cls, '{0}_client'.format(name), client)
+        setattr(cls, '{0}_server'.format(name), server)
+
         
 class Proxy(Actor):
     """A proxy actor.
