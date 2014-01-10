@@ -209,10 +209,8 @@ class Proxy(Actor):
 
 
 def test():
-    m1 = Membrane.create(uid_to_proxy={}, proxy_to_uid={},
-                         transport={'protocol': 'null'})
-    m2 = Membrane.create(uid_to_proxy={}, proxy_to_uid={},
-                         transport={'protocol': 'null'})
+    m1 = Membrane.create(transport={'protocol': 'null'})
+    m2 = Membrane.create(transport={'protocol': 'null'})
     m1('start')
     m2('start')
     
