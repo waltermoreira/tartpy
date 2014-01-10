@@ -7,7 +7,7 @@ def test_membrane():
                     'membrane': m1}
     m2 = Membrane.create()
     m2.transport = {'protocol': 'null',
-                    'membrane': m1}
+                    'membrane': m2}
     m1 << 'start'
     m2 << 'start'
 
