@@ -11,6 +11,9 @@ create with a keyword argument of the form::
 
 """
 
+import queue
+
+
 class AbstractSponsor(object):
     """Interface for sponsors."""
 
@@ -27,10 +30,10 @@ class SimpleSponsor(AbstractSponsor):
     """Sponsor that keeps track of created actors."""
     
     def __init__(self):
-        self.actors = []
+        self.actors = queue.LifoQueue()
         
     def create(self, cls, **kwargs):
-        self.actors.append((cls, kwargs))
+        self.actors.put((cls, kwargs))
         actor = cls(**kwargs)
         actor._ensure_loop()
         return actor

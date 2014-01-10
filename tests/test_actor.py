@@ -105,7 +105,8 @@ def test_simple_sponsor():
 
     sponsor = SimpleSponsor()
     a = A.create(key=1, sponsor=sponsor)
-    assert sponsor.actors == [(A, {'key': 1, 'sponsor': sponsor})]
+    assert sponsor.actors.qsize() == 1
+    assert sponsor.actors.get() == (A, {'key': 1, 'sponsor': sponsor})
     assert a.sponsor == sponsor
 
 def test_setup():
