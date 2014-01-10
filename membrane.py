@@ -127,7 +127,7 @@ class Membrane(Actor):
         transport information in ``transport``.
 
         """
-        transport_impl = getattr(self, transport['protocol'])
+        transport_impl = getattr(self, '{0}_client'.format(transport['protocol']))
         if transport_impl is None:
             self.error('No transport {0}'.format(transport['protocol']))
             return
@@ -159,15 +159,15 @@ class Membrane(Actor):
           ``X``, using information contained in the dictionary
           ``transport``.
 
-        - ``X(transport, to, msg)``: send message ``msg`` to uid
-          ``to``, using transport information for protocol X in the
-          dictionary ``transport``.
-        
+        - ``X_client(msg, transport)``: send message ``msg``, using
+          transport information for protocol X in the dictionary
+          ``transport``.
+
         """
         server_impl = getattr(self, '{0}_server'.format(transport['protocol']))
         server_impl(transport)
 
-    def null(self, msg, transport):
+    def null_client(self, msg, transport):
         """Deliver directly to a membrane.
 
         Send message directly to the actor referenced by
