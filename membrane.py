@@ -14,11 +14,15 @@ the same process.
 
 """
 
-import uuid
 from contextlib import contextmanager
+import json
+import uuid
+import socket
+import socketserver
+import threading
 
+from example import Printer, Echo
 from rt import AbstractActor, Actor, initial_behavior, Wait
-from example import Printer
 
 
 class Membrane(Actor):
@@ -196,6 +200,48 @@ class Membrane(Actor):
         """
         pass
 
+    def tcp_client(self, msg, transport):
+        """Client for tcp transport.
+
+        Send message as a JSON object with UTF-8 encoding.
+
+        """
+        ip = transport['ip']
+        port = transport['port']
+        sock = socket.socket()
+        sock.connect((ip, port))
+        sock_file = sock.makefile('w', encoding='utf8')
+        try:
+            sock_file.write(json.dumps(msg) + '\n')
+        finally:
+            sock_file.close()
+            sock.close()
+        return True
+
+    def tcp_server(self, transport):
+        """Server for tcp transport.
+
+        Use a threaded stream server from the standard library.
+
+        """
+        class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+            allow_reuse_address = True
+
+        membrane = self
+        class ThreadedTCPHandler(socketserver.StreamRequestHandler):
+            def handle(self):
+                s = self.rfile.readline().decode('utf-8')
+                if s:
+                    obj = json.loads(s)
+                    membrane << obj
+
+        ip = transport['ip']
+        port = transport['port']
+        server = ThreadedTCPServer((ip, port), ThreadedTCPHandler)
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+
     @classmethod
     def add_transport(cls, name, client, server):
         """Dynamically add a new transport with name ``name``.
@@ -229,3 +275,32 @@ class Proxy(Actor):
                        '_msg': message})
 
 
+def test():
+    m1 = Membrane.create(transport={'protocol': 'tcp',
+                                    'ip': 'localhost',
+                                    'port': 5555})
+    m2 = Membrane.create(transport={'protocol': 'tcp',
+                                    'ip': 'localhost',
+                                    'port': 6666})
+    m1 << 'start'
+    m2 << 'start'
+
+    actor2 = Echo.create()
+    actor1 = Printer.create()
+
+    w = Wait.create()
+    m2 << {'get_uid': actor2,
+           'reply_to': w}
+    u2 = w.act()['uid']
+
+    m1 << {'create_proxy': u2,
+           'transport': {'protocol': 'tcp',
+                         'ip': 'localhost',
+                         'port': 6666},
+           'reply_to': w}
+    proxy = w.act()['proxy']
+
+    proxy << {'foo': 3,
+              'reply_to': actor1}
+
+    return m1, m2
