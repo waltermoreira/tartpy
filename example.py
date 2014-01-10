@@ -10,6 +10,8 @@ class Stateless(Actor):
 
 class Stateful(Actor):
 
+    # args: state
+
     @initial_behavior
     def stateful_beh(self, message):
         print("Have state: {}".format(self.state))
@@ -35,14 +37,14 @@ class Chain(Actor):
         if self.count > 0:
             print("Chain: {}".format(self.count))
             next = Chain.create(count=self.count - 1)
-            next(message)
+            next << message
 
             
 class Echo(Actor):
 
     @initial_behavior
     def echo_beh(self, message):
-        message['reply_to']({'answer': message})
+        message['reply_to'] << {'answer': message}
 
         
 class Printer(Actor):
