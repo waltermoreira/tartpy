@@ -57,6 +57,7 @@ Exports
 """
 
 
+import pprint
 import queue
 import threading
 
@@ -145,7 +146,7 @@ class AbstractActor(object, metaclass=MetaActor):
 
     def _error(self, message):
         """Basic error handling for sponsorless actors."""
-        print('ERROR: {0}'.format(message))
+        print('ERROR: {0}'.format(pprint.pformat(message)))
             
     @classmethod
     def create(cls, **kwargs):
