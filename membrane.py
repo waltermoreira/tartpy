@@ -17,7 +17,7 @@ the same process.
 import uuid
 from contextlib import contextmanager
 
-from rt import Actor, initial_behavior, Wait
+from rt import AbstractActor, Actor, initial_behavior, Wait
 from example import Printer
 
 
@@ -93,7 +93,7 @@ class Membrane(Actor):
         """
         obj = dict(message)
         for key, value in message.items():
-            if isinstance(value, Actor):
+            if isinstance(value, AbstractActor):
                 uid = self.get_uid(value)
                 obj[key] = {'_proxy': uid,
                             '_transport': self.transport}
