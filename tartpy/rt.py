@@ -61,7 +61,7 @@ import pprint
 import queue
 import threading
 
-import eventloop
+from . import eventloop
 
 
 def initial_behavior(f):

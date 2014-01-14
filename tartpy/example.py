@@ -1,4 +1,4 @@
-from rt import Actor, initial_behavior
+from .rt import Actor, initial_behavior
 
 
 class Stateless(Actor):

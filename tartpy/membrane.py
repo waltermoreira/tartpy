@@ -21,8 +21,8 @@ import socket
 import socketserver
 import threading
 
-from example import Printer, Echo
-from rt import AbstractActor, Actor, initial_behavior, Wait
+from .example import Printer, Echo
+from .rt import AbstractActor, Actor, initial_behavior, Wait
 
 
 class Membrane(Actor):

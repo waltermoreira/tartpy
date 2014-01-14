@@ -1,7 +1,7 @@
 import pytest
 
-from rt import ActorManualLoop, ActorOwnManualLoop, initial_behavior
-from sponsor import SimpleSponsor
+from tartpy.rt import ActorManualLoop, ActorOwnManualLoop, initial_behavior
+from tartpy.sponsor import SimpleSponsor
 
     
 def test_receive_message():

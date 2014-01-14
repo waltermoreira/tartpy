@@ -1,5 +1,5 @@
-from membrane import Membrane, Proxy
-from rt import Wait
+from tartpy.membrane import Membrane, Proxy
+from tartpy.rt import Wait
 
 def test_membrane():
     m1 = Membrane.create()
