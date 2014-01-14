@@ -8,10 +8,10 @@ Overview
 ========
 
 The ideas for ``tartpy`` are shamelessly stolen from `@dalnefre`_ and
-`@tristanls`_.  The differences are mainly to follow a more
-``Pythonic'' syntax.  When in doubt about semantics, Dale's and
-Tristan's ``tartjs`` is probably the correct one.  Please, report the
-divergence as a bug to this project.
+`@tristanls`_.  The differences are mainly to follow a more "Pythonic"
+syntax.  When in doubt about semantics, Dale's and Tristan's
+``tartjs`` is probably the correct one.  Please, report the divergence
+as a bug to this project.
 
 ``tartpy`` aims to be an actor library with the following features:
 
