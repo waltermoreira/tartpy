@@ -2,13 +2,31 @@
 tart.py
 =======
 
-Python implementation inspired from `tart.js <https://github.com/organix/tartjs>`_.
+Python implementation of the `Actor Model`_ inspired from `tart.js`_.
 
-Differences
-===========
+Overview
+========
 
-- No sponsors yet (experimenting with each actor creating its children).
-- Each actor has its own event loop.
+The ideas for ``tartpy`` are shamelessly stolen from `@dalnefre`_ and
+`@tristanls`_.  The differences are mainly to follow a more
+``Pythonic'' syntax.  When in doubt about semantics, Dale's and
+Tristan's ``tartjs`` is probably the correct one.  Please, report the
+divergence as a bug to this project.
+
+``tartpy`` aims to be an actor library with the following features:
+
+- it implements the pure actor model (rather than the Erlang model),
+
+- it can be used in practical situations to express lock-free and
+  concurrent algorithms,
+
+- it abstracts the network transport to allow arbitrary protocols,
+
+- it implements a `capability based approach`_ to isolate actors,
+  using membranes (again, the ideas are due to `@dalnefre`_ and
+  `@tristanls`_).  This is the point where the semantics of ``tartpy``
+  may not fully match ``tartjs``'.  Use with care.
+
 
 Example
 =======
@@ -50,3 +68,8 @@ For ``M = 100000`` and ``N = 10``::
       0.7699680328369141 seconds
     Average: 0.7706375122070312 seconds
 
+.. _Actor Model: http://en.wikipedia.org/wiki/Actor_model
+.. _tart.js: https://github.com/organix/tartjs
+.. _@dalnefre: https://github.com/dalnefre
+.. _@tristanls: https://github.com/tristanls
+.. _capability based approach: http://en.wikipedia.org/wiki/Capability-based_security
