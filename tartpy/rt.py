@@ -270,8 +270,10 @@ class Wait(ActorOwnManualLoop):
     @initial_behavior
     def wait_beh(self, message):
         return message
-        
-        
-Actor = ActorOwnLoop
-#Actor = ActorGlobalLoop
+
+
+#Actor = ActorOwnLoop
 #Actor = ActorManualLoop
+
+Actor = ActorGlobalLoop
+
