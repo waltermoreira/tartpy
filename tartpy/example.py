@@ -1,4 +1,5 @@
 from .rt import Actor, initial_behavior
+from . import eventloop
 
 
 class Stateless(Actor):
@@ -79,3 +80,4 @@ def test():
 
 if __name__ == '__main__':
     test()
+    eventloop.ThreadedEventLoop.get_loop().stop()
