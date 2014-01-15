@@ -1,7 +1,17 @@
+from tartpy import eventloop
+import pytest
 from tartpy.membrane import Membrane, Proxy
 from tartpy.rt import Wait
 
-def test_membrane():
+@pytest.fixture(scope='module')
+def ev_loop(request):
+    loop = eventloop.ThreadedEventLoop.get_loop()
+    def shutdown():
+        loop.stop()
+    request.addfinalizer(shutdown)
+    return loop
+
+def test_membrane(ev_loop):
     m1 = Membrane.create()
     m1.transport = {'protocol': 'null',
                     'membrane': m1}
@@ -39,7 +49,7 @@ def test_membrane():
     assert msg['bar'] == 3
     assert msg['reply_to'] is proxy
     
-def test_export():
+def test_export(ev_loop):
     m1 = Membrane.create(transport={'protocol': 'null'})
     a = Wait.create()
     obj = m1.export_message({'foo': a})
