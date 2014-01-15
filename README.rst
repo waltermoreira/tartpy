@@ -27,6 +27,22 @@ as a bug to this project.
   `@tristanls`_).  This is the point where the semantics of ``tartpy``
   may not fully match ``tartjs``'.  Use with care.
 
+Installing
+==========
+
+Clone this repository and install with ``python3 setup.py install``::
+
+    $ git clone https://github.com/waltermoreira/tartpy
+    $ cd tartpy
+    $ python3 setup.py install
+
+Test
+====
+
+Run tests with::
+
+    $ python3 setup.py test
+
 
 Example
 =======
