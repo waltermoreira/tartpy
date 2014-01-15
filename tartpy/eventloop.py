@@ -19,6 +19,7 @@ Exports
 import queue
 import sys
 import threading
+import time
 import traceback
 
 
@@ -61,6 +62,8 @@ def global_loop_step(queue, block=False):
     
     """
     actor, message = queue.get(block=block)
+    if actor is None:
+        raise StopIteration()
     try:
         actor.behavior(message)
     except Exception as exc:
@@ -68,9 +71,16 @@ def global_loop_step(queue, block=False):
 
 
 def global_loop(queue):
-    """Process events indefinitely."""
-    while True:
-        global_loop_step(queue, block=True)
+    """Process events indefinitely.
+
+    To stop the loop put a ``(None, None)`` object in the queue.
+
+    """
+    try:
+        while True:
+            global_loop_step(queue, block=True)
+    except StopIteration:
+        return
 
 
 class EventLoop(object):
@@ -101,11 +111,18 @@ class EventLoop(object):
         if cls.loop is None:
             cls.loop = cls()
         return cls.loop
+
+    def stop(self):
+        """Stop the loop."""
+        pass
         
 
 class ThreadedEventLoop(EventLoop):
     """An event loop that dispatches events from a thread."""
 
+    # Wait a bit before checking the queue for emptyness
+    WAIT_FOR_EMPTY = 0.1        # seconds
+    
     def __init__(self):
         super().__init__()
         self.thread = threading.Thread(
@@ -113,6 +130,19 @@ class ThreadedEventLoop(EventLoop):
             args=(self.queue,),
             name='global-loop')
         self.thread.start()
+
+    def stop(self):
+        """Shutdown the eventloop.
+
+        Make sure the queue is empty.
+        
+        """
+        while True:
+            time.sleep(self.WAIT_FOR_EMPTY)
+            if self.queue.empty():
+                break
+        self.queue.put((None, None))
+        self.thread.join()
 
 
 class ManualEventLoop(EventLoop):
