@@ -13,6 +13,7 @@ def ev_loop(request):
     return loop
 
 def test_membrane(ev_loop):
+    # setup
     m1 = Membrane.create()
     m1.transport = {'protocol': 'null',
                     'membrane': m1}
@@ -35,19 +36,25 @@ def test_membrane(ev_loop):
                          'membrane': m2},
            'reply_to': w}
     proxy_for_2 = w.act()['proxy']
+
+    # test message from m1 to m2
     proxy_for_2 << {'foo': 5,
                     'reply_to': actor1}
 
     msg = actor2.act()
     assert msg['foo'] == 5
 
+    # test that 'reply_to' is a proxy in m2
     proxy_for_1 = msg['reply_to']
     assert isinstance(proxy_for_1, Proxy)
 
+    # test a message back to m1
     proxy_for_1 << {'bar': 3,
                     'reply_to': actor2}
     msg = actor1.act()
     assert msg['bar'] == 3
+
+    # test that proxy is reused
     assert msg['reply_to'] is proxy_for_2
 
 def test_dos(ev_loop):
