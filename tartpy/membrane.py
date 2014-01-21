@@ -156,18 +156,24 @@ class Membrane(Actor):
                                                  msg, transport))
 
     def get_proxy(self, uid):
-        """Convert an uid to an actor."""
+        """Get proxy associated to ``uid``.
+
+        Raise an exception is there is not associated proxy.
+
+        """
         proxy = self.uid_to_proxy[uid]
         self.proxy_to_uid[proxy] = uid
         return proxy
 
     def create_proxy(self, uid):
+        """Create proxy for ``uid``."""
         proxy = Proxy.create(membrane=self)
         self.uid_to_proxy[uid] = proxy
         self.proxy_to_uid[proxy] = uid
         return proxy
 
     def get_or_create_proxy(self, uid):
+        """Get or create a new proxy for ``uid``."""
         try:
             return self.get_proxy(uid)
         except KeyError:
