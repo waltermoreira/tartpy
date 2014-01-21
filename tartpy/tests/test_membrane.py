@@ -50,7 +50,10 @@ def test_membrane(ev_loop):
     assert msg['bar'] == 3
     assert msg['reply_to'] is proxy_for_2
 
+def test_dos(ev_loop):
     # test denial of service
+    w = Wait.create()
+    
     class ErrorSponsor(SimpleSponsor):
 
         def error(self, actor, message):
