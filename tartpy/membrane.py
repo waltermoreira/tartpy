@@ -74,7 +74,7 @@ class Membrane(Actor):
             message['reply_to']({'uid': uid})
         if 'create_proxy' in message:
             uid = message['create_proxy']
-            proxy = self.get_proxy(uid)
+            proxy = self.create_proxy(uid)
             proxy.transport = message.get('transport', {'protocol': 'null',
                                                         'membrane': self})
             message['reply_to']({'proxy': proxy})
@@ -125,7 +125,7 @@ class Membrane(Actor):
         for key, value in obj.items():
             if isinstance(value, dict) and '_proxy' in value:
                 uid = value['_proxy']
-                proxy = self.get_proxy(uid)
+                proxy = self.get_or_create_proxy(uid)
                 proxy.transport = value['_transport']
                 message[key] = proxy
         return message
@@ -150,10 +150,22 @@ class Membrane(Actor):
 
     def get_proxy(self, uid):
         """Convert an uid to an actor."""
-        proxy = self.uid_to_proxy.setdefault(uid, Proxy.create(membrane=self))
+        proxy = self.uid_to_proxy[uid]
         self.proxy_to_uid[proxy] = uid
         return proxy
-        
+
+    def create_proxy(self, uid):
+        proxy = Proxy.create(membrane=self)
+        self.uid_to_proxy[uid] = proxy
+        self.proxy_to_uid[proxy] = uid
+        return proxy
+
+    def get_or_create_proxy(self, uid):
+        try:
+            return self.get_proxy(uid)
+        except KeyError:
+            return self.create_proxy(uid)
+            
     def get_uid(self, actor):
         """Convert an actor to a uid."""
         uid = self.proxy_to_uid.setdefault(actor, uuid.uuid4().hex)

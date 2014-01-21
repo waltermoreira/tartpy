@@ -1,3 +1,4 @@
+from tartpy.sponsor import SimpleSponsor
 from tartpy import eventloop
 import pytest
 from tartpy.membrane import Membrane, Proxy
@@ -48,6 +49,20 @@ def test_membrane(ev_loop):
     msg = actor1.act()
     assert msg['bar'] == 3
     assert msg['reply_to'] is proxy_for_2
+
+    # test denial of service
+    class ErrorSponsor(SimpleSponsor):
+
+        def error(self, actor, message):
+            w << message['exception']
+
+    sponsor = ErrorSponsor()
+    m = Membrane.create(transport={'protocol': 'null'}, sponsor=sponsor)
+    m << 'start'
+    m << {'_to': 'doesnotexist', '_msg': {}}
+    exc = w.act()
+    assert exc['type'] is KeyError
+    assert exc['value'].args == ('doesnotexist',)
     
 def test_export(ev_loop):
     m1 = Membrane.create(transport={'protocol': 'null'})
