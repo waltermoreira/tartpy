@@ -154,7 +154,7 @@ class AbstractActor(object, metaclass=MetaActor):
 
         Use as::
 
-            foo = Foo(arg1=val1, arg2=val2)
+            foo = Foo.create(arg1=val1, arg2=val2)
 
         If the keyword ``sponsor`` is given, use it to delegate the
         creation of the actor.  The attribute ``sponsor`` is also set
