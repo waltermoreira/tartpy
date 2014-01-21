@@ -33,21 +33,21 @@ def test_membrane(ev_loop):
            'transport': {'protocol': 'null',
                          'membrane': m2},
            'reply_to': w}
-    proxy = w.act()['proxy']
-    proxy << {'foo': 5,
-              'reply_to': actor1}
+    proxy_for_2 = w.act()['proxy']
+    proxy_for_2 << {'foo': 5,
+                    'reply_to': actor1}
 
     msg = actor2.act()
     assert msg['foo'] == 5
 
-    proxy2 = msg['reply_to']
-    assert isinstance(proxy2, Proxy)
+    proxy_for_1 = msg['reply_to']
+    assert isinstance(proxy_for_1, Proxy)
 
-    proxy2 << {'bar': 3,
-               'reply_to': actor2}
+    proxy_for_1 << {'bar': 3,
+                    'reply_to': actor2}
     msg = actor1.act()
     assert msg['bar'] == 3
-    assert msg['reply_to'] is proxy
+    assert msg['reply_to'] is proxy_for_2
     
 def test_export(ev_loop):
     m1 = Membrane.create(transport={'protocol': 'null'})
