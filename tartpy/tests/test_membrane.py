@@ -57,6 +57,11 @@ def test_membrane(ev_loop):
     # test that proxy is reused
     assert msg['reply_to'] is proxy_for_2
 
+    # test a string message across domains
+    proxy_for_2 << 'a string message'
+    msg = actor2.act()
+    assert msg == 'a string message'
+
 def test_dos(ev_loop):
     # test denial of service
     w = Wait.create()

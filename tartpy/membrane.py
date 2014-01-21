@@ -14,6 +14,7 @@ the same process.
 
 """
 
+from collections.abc import Mapping
 from contextlib import contextmanager
 import json
 import uuid
@@ -97,6 +98,9 @@ class Membrane(Actor):
         convert references at any level.
 
         """
+        if not isinstance(message, Mapping):
+            return message
+
         obj = {}
         for key, value in message.items():
             if isinstance(value, AbstractActor):
@@ -121,6 +125,9 @@ class Membrane(Actor):
         are substituted for the proper actor to which they refer.
 
         """
+        if not isinstance(obj, Mapping):
+            return obj
+
         message = dict(obj)
         for key, value in obj.items():
             if isinstance(value, dict) and '_proxy' in value:
