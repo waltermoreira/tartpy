@@ -3,9 +3,16 @@ import time
 import queue
 from functools import wraps, partial
 import sys
+import traceback
 
-from . import eventloop
 
+def _format_exception(exc_info):
+    """Create a message with details on the exception."""
+    exc_type, exc_value, exc_tb = exc_info
+    return {'exception': {'type': exc_type,
+                          'value': exc_value,
+                          'traceback': exc_tb},
+            'traceback': traceback.format_exception(*exc_info)}
 
 def behavior(f):
     @wraps(f)
@@ -43,7 +50,7 @@ def beh_loop(queue, block=True):
             try:
                 context._behavior(context, msg)
             except Exception as exc:
-                print(eventloop._format_exception(sys.exc_info()))
+                print(_format_exception(sys.exc_info()))
     except StopIteration:
         return
 
