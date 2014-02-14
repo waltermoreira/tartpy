@@ -38,7 +38,7 @@ def gii(context, n):
         context.self << n-1
     else:
         print('finally')
-        a = context.sponsor(foo, 3)
+        a = context.create(foo, 3)
         a << 5
     
 q = queue.Queue()
@@ -66,16 +66,25 @@ def run_loop():
 #     name='beh_loop')
 #loop.start()
 
+class AbstractRuntime(object):
 
-def sponsor(behavior, *args):
-    a = Context(sponsor, behavior, *args)
-    return Actor(a.send)
+    def create(self, behavior, *args):
+        raise NotImplementedError()
+
+
+class SimpleRuntime(AbstractRuntime):
+
+    def create(self, behavior, *args):
+        a = Context(self, behavior, *args)
+        return Actor(a.send)
+
+runtime = SimpleRuntime()
 
     
 class Context(object):
 
-    def __init__(self, sponsor, behavior, *args):
-        self.sponsor = sponsor
+    def __init__(self, runtime, behavior, *args):
+        self.runtime = runtime
         self.self = Actor(self.send)
         self.become(behavior, *args)
 
@@ -85,7 +94,10 @@ class Context(object):
     def send(self, msg):
         q.put((self, msg))
 
+    def create(self, behavior, *args):
+        return self.runtime.create(behavior, *args)
 
+        
 class Actor(object):
 
     def __init__(self, f):
@@ -95,6 +107,25 @@ class Actor(object):
         self.f(msg)
 
 
+def test_context_create():
+
+    result = None
+    
+    @behavior
+    def foo(ctx, msg):
+        nonlocal result
+        result = msg
+        
+    @behavior
+    def beh(ctx, msg):
+        a = ctx.create(foo)
+        a << msg
+
+    x = runtime.create(beh)
+    x << 5
+    run_loop()
+    assert result == 5
+    
 def test_receive_message():
 
     result = None
@@ -104,7 +135,7 @@ def test_receive_message():
         nonlocal result
         result = msg
 
-    a = sponsor(beh)
+    a = runtime.create(beh)
     a << 5
     run_loop()
     assert result == 5
@@ -118,7 +149,7 @@ def test_create_with_args():
         nonlocal result
         result = arg
 
-    a = sponsor(beh, True)
+    a = runtime.create(beh, True)
     a << 0
     run_loop()
     assert result is True
@@ -146,8 +177,8 @@ def test_one_shot():
         message = msg
         destination_beh_done = True
 
-    destination = sponsor(destination_beh)
-    one_shot = sponsor(one_shot_beh, destination)
+    destination = runtime.create(destination_beh)
+    one_shot = runtime.create(one_shot_beh, destination)
 
     one_shot << 'first'
     one_shot << 'second'
@@ -187,7 +218,7 @@ def test_serial():
     def record():
         return bool(first), bool(second), bool(third)
         
-    serial = sponsor(first_beh)
+    serial = runtime.create(first_beh)
     serial << 'foo'
     serial << 'foo'
     serial << 'foo'
@@ -219,7 +250,7 @@ def sink_beh(context, msg):
 @behavior
 def ringbuilder_beh(m, context, msg):
     if m > 0:
-        next = context.sponsor(ringbuilder_beh, m-1)
+        next = context.create(ringbuilder_beh, m-1)
         next << msg
         context.become(ringlink_beh, next)
     else:
@@ -232,7 +263,7 @@ def erlang_challenge(m, n):
     print('Starting {} actor ring'. format(m))
     global construction_start_time
     construction_start_time = time.time()
-    ring = sponsor(ringbuilder_beh, m)
+    ring = runtime.create(ringbuilder_beh, m)
     ring << {'first': ring, 'n': n}
 
 construction_start_time = 0
