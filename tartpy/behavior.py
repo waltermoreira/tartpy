@@ -281,3 +281,7 @@ def report():
     for t in intervals:
         print('  {} seconds'.format(t))
     print('Average: {} seconds'.format(sum(intervals)/len(intervals)))
+
+if __name__ == '__main__':
+    erlang_challenge(int(sys.argv[1]), int(sys.argv[2]))
+    run_loop()
