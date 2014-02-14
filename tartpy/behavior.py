@@ -39,9 +39,9 @@ q = queue.Queue()
 def beh_loop(queue, block=True):
     try:
         while True:
-            actor, msg = queue.get(block=block)
+            context, msg = queue.get(block=block)
             try:
-                actor._behavior(actor, msg)
+                context._behavior(context, msg)
             except Exception as exc:
                 print(eventloop._format_exception(sys.exc_info()))
     except StopIteration:
@@ -61,15 +61,15 @@ def run_loop():
 
 
 def sponsor(behavior, *args):
-    a = Actor(sponsor, behavior, *args)
-    return Capability(a.send)
+    a = Context(sponsor, behavior, *args)
+    return Actor(a.send)
 
     
-class Actor(object):
+class Context(object):
 
     def __init__(self, sponsor, behavior, *args):
         self.sponsor = sponsor
-        self.self = Capability(self.send)
+        self.self = Actor(self.send)
         self.become(behavior, *args)
 
     def become(self, behavior, *args):
@@ -79,7 +79,7 @@ class Actor(object):
         q.put((self, msg))
 
 
-class Capability(object):
+class Actor(object):
 
     def __init__(self, f):
         self.f = f
