@@ -50,15 +50,18 @@ def run_loop():
     
 class Actor(object):
 
-    def __init__(self, behavior):
-        self.become(behavior)
+    def __init__(self, behavior, *args):
+        self.become(behavior, *args)
 
-    def become(self, behavior):
-        self._behavior = behavior
+    def become(self, behavior, *args):
+        self._behavior = behavior(*args)
 
     def send(self, msg):
         q.put((self, msg))
 
+    def __lshift__(self, msg):
+        self.send(msg)
+        
 
 def test_receive_message():
 
@@ -66,8 +69,8 @@ def test_receive_message():
     def beh(self, msg):
         self.message = msg
 
-    a = Actor(beh())
-    a.send(5)
+    a = Actor(beh)
+    a << 5
     run_loop()
     assert a.message == 5
 
@@ -77,8 +80,8 @@ def test_create_with_args():
     def beh(arg, self, msg):
         self.arg = arg
 
-    a = Actor(beh(True))
-    a.send(0)
+    a = Actor(beh, True)
+    a << 0
     run_loop()
     assert a.arg is True
 
@@ -87,7 +90,7 @@ def test_one_shot():
     @behavior
     def one_shot_beh(destination, self, msg):
         destination.send(msg)
-        self.become(sink_beh())
+        self.become(sink_beh)
 
     @behavior
     def sink_beh(self, msg):
@@ -99,11 +102,11 @@ def test_one_shot():
         self.msg = msg
         self.destination_beh_done = True
 
-    destination = Actor(destination_beh())
-    one_shot = Actor(one_shot_beh(destination))
+    destination = Actor(destination_beh)
+    one_shot = Actor(one_shot_beh, destination)
 
-    one_shot.send('first')
-    one_shot.send('second')
+    one_shot << 'first'
+    one_shot << 'second'
 
     run_loop()
     assert destination.msg == 'first'
@@ -113,14 +116,14 @@ def test_serial():
 
     @behavior
     def first_beh(self, msg):
-        self.become(second_beh())
+        self.become(second_beh)
         self.first_msg = msg
         self.first_behavior = record(self)
         self.first = True
 
     @behavior
     def second_beh(self, msg):
-        self.become(third_beh())
+        self.become(third_beh)
         self.second_msg = msg
         self.second_behavior = record(self)
         self.second = True
@@ -133,11 +136,11 @@ def test_serial():
     def record(actor):
         return bool(actor.first), bool(actor.second), bool(actor.third)
         
-    serial = Actor(first_beh())
+    serial = Actor(first_beh)
     serial.first = serial.second = serial.third = False
-    serial.send('foo')
-    serial.send('foo')
-    serial.send('foo')
+    serial << 'foo'
+    serial << 'foo'
+    serial << 'foo'
 
     run_loop()
 
@@ -148,15 +151,15 @@ def test_serial():
 
 @behavior
 def ringlink_beh(next, self, n):
-    next.send(n)
+    next << n
 
 @behavior
 def ringlast_beh(first, self, n):
     loop_completion_times.append(time.time())
     if n > 1:
-        first.send(n-1)
+        first << n-1
     else:
-        self.become(sink_beh())
+        self.become(sink_beh)
         report()
 
 @behavior
@@ -166,21 +169,21 @@ def sink_beh(self, msg):
 @behavior
 def ringbuilder_beh(m, self, msg):
     if m > 0:
-        next = Actor(ringbuilder_beh(m-1))
-        next.send(msg)
-        self.become(ringlink_beh(next))
+        next = Actor(ringbuilder_beh, m-1)
+        next << msg
+        self.become(ringlink_beh, next)
     else:
         global construction_end_time
         construction_end_time = time.time()
-        msg['first'].send(msg['n'])
-        self.become(ringlast_beh(msg['first']))
+        msg['first'] << msg['n']
+        self.become(ringlast_beh, msg['first'])
 
-def test(m, n):
+def erlang_challenge(m, n):
     print('Starting {} actor ring'. format(m))
     global construction_start_time
     construction_start_time = time.time()
-    ring = Actor(ringbuilder_beh(m))
-    ring.send({'first': ring, 'n': n})
+    ring = Actor(ringbuilder_beh, m)
+    ring << {'first': ring, 'n': n}
 
 construction_start_time = 0
 construction_end_time = 0
