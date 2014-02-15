@@ -1,5 +1,6 @@
 import threading
 import time
+import pprint
 import queue
 from functools import wraps, partial
 import sys
@@ -50,7 +51,7 @@ def beh_loop(queue, block=True):
             try:
                 context._behavior(context, msg)
             except Exception as exc:
-                print(_format_exception(sys.exc_info()))
+                context.error(_format_exception(sys.exc_info()))
     except StopIteration:
         return
 
@@ -71,12 +72,18 @@ class AbstractRuntime(object):
     def create(self, behavior, *args):
         raise NotImplementedError()
 
+    def error(self, message):
+        raise NotImplementedError()
 
 class SimpleRuntime(AbstractRuntime):
 
     def create(self, behavior, *args):
         a = Context(self, behavior, *args)
         return Actor(a.send)
+
+    def error(self, message):
+        print('ERROR: {0}'.format(pprint.pformat(message)))
+        
 
 runtime = SimpleRuntime()
 
@@ -97,6 +104,9 @@ class Context(object):
     def create(self, behavior, *args):
         return self.runtime.create(behavior, *args)
 
+    def error(self, message):
+        self.runtime.error(message)
+
         
 class Actor(object):
 
@@ -106,7 +116,27 @@ class Actor(object):
     def __lshift__(self, msg):
         self.f(msg)
 
+def test_runtime_error():
 
+    err = False
+
+    class TestRuntime(SimpleRuntime):
+
+        def error(self, message):
+            nonlocal err
+            err = True
+
+    @behavior
+    def beh(ctx, msg):
+        1/0
+
+    test_rt = TestRuntime()
+    x = test_rt.create(beh)
+    x << 5
+    run_loop()
+    assert err is True
+    
+    
 def test_context_create():
 
     result = None
