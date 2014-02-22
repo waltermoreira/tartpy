@@ -1,131 +1,209 @@
 import pytest
 
-from tartpy.rt import ActorManualLoop, ActorOwnManualLoop, initial_behavior
-from tartpy.sponsor import SimpleSponsor
+from tartpy.runtime import behavior, SimpleRuntime
+from tartpy.eventloop import EventLoop
 
+
+runtime = SimpleRuntime()
+
+
+def test_runtime_error():
+
+    err = False
+
+    class TestRuntime(SimpleRuntime):
+
+        def error(self, message):
+            nonlocal err
+            err = True
+
+    @behavior
+    def beh(self, msg):
+        1/0
+
+    test_rt = TestRuntime()
+    x = test_rt.create(beh)
+    x << 5
+    EventLoop().run()
+    assert err is True
     
+    
+def test_self_create():
+
+    result = None
+    
+    @behavior
+    def foo(self, msg):
+        nonlocal result
+        result = msg
+        
+    @behavior
+    def beh(self, msg):
+        a = self.create(foo)
+        a << msg
+
+    x = runtime.create(beh)
+    x << 5
+    EventLoop().run()
+    assert result == 5
+    
+
 def test_receive_message():
-    
-    class A(ActorManualLoop):
-        @initial_behavior
-        def receive_beh(self, message):
-            self.message = message
 
-    a = A.create()
-    a(5)
-    a.loop.run()
-    assert a.message == 5
-
+    result = None
     
+    @behavior
+    def beh(self, msg):
+        nonlocal result
+        result = msg
+
+    a = runtime.create(beh)
+    a << 5
+    EventLoop().run()
+    assert result == 5
+
 def test_create_with_args():
-    
-    class A(ActorManualLoop):
-        @initial_behavior
-        def receive_beh(self, message):
-            self.arg = self.foo
 
-    a = A.create(foo=True)
-    a(0)
-    a.loop.run()
-    assert a.arg is True
+    result = None
+    
+    @behavior
+    def beh(arg, self, msg):
+        nonlocal result
+        result = arg
+
+    a = runtime.create(beh, True)
+    a << 0
+    EventLoop().run()
+    assert result is True
 
 def test_one_shot():
 
-    class OneShot(ActorManualLoop):
-        # args: destination
-        
-        @initial_behavior
-        def one_shot_beh(self, message):
-            self.destination(message)
-            self.behavior = self.sink_beh
+    sink_beh_done = False
+    destination_beh_done = False
+    message = None
+    
+    @behavior
+    def one_shot_beh(destination, self, msg):
+        destination << msg
+        self.become(sink_beh)
 
-        def sink_beh(self, message):
-            assert message == 'second'
-            self.sink_beh_done = True
+    @behavior
+    def sink_beh(self, msg):
+        assert msg == 'second'
+        nonlocal sink_beh_done
+        sink_beh_done = True
 
-    class Destination(ActorManualLoop):
-        
-        @initial_behavior
-        def destination_beh(self, message):
-            self.msg = message
-            self.destination_beh_done = True
+    @behavior
+    def destination_beh(self, msg):
+        nonlocal message, destination_beh_done
+        message = msg
+        destination_beh_done = True
 
-    destination = Destination.create()
-    one_shot = OneShot.create(destination=destination)
+    destination = runtime.create(destination_beh)
+    one_shot = runtime.create(one_shot_beh, destination)
 
-    one_shot('first')
-    one_shot('second')
+    one_shot << 'first'
+    one_shot << 'second'
 
-    one_shot.loop.run()
-    assert destination.msg == 'first'
-    assert one_shot.sink_beh_done and destination.destination_beh_done
+    EventLoop().run()
+    assert message == 'first'
+    assert sink_beh_done and destination_beh_done
     
 def test_serial():
 
-    class Serial(ActorManualLoop):
-        # args: first, second, third
-
-        def record(self):
-            return (bool(self.first), bool(self.second), bool(self.third))
-            
-        @initial_behavior
-        def first_beh(self, msg):
-            self.behavior = self.second_beh
-            self.first_msg = msg
-            self.first_behavior = self.record()
-            self.first = True
-
-        def second_beh(self, msg):
-            self.behavior = self.third_beh
-            self.second_msg = msg
-            self.second_behavior = self.record()
-            self.second = True
-
-        def third_beh(self, msg):
-            self.third_msg = msg
-            self.third_behavior = self.record()
-
-    serial = Serial.create(first=False, second=False, third=False)
-    serial('foo')
-    serial('foo')
-    serial('foo')
-
-    serial.loop.run()
-    assert serial.first_msg == 'foo' and serial.second_msg == 'foo' and serial.third_msg == 'foo'
-    assert serial.first_behavior == (False, False, False)
-    assert serial.second_behavior == (True, False, False)
-    assert serial.third_behavior == (True, True, False)
-
-def test_simple_sponsor():
-
-    class A(ActorManualLoop):
-        @initial_behavior
-        def beh(self, message):
-            pass
-
-    sponsor = SimpleSponsor()
-    a = A.create(key=1, sponsor=sponsor)
-    assert sponsor.actors.qsize() == 1
-    assert sponsor.actors.get() == (A, {'key': 1, 'sponsor': sponsor})
-    assert a.sponsor == sponsor
-
-def test_setup():
-
-    class A(ActorOwnManualLoop):
-
-        def setup(self):
-            self.foo = 5
-
-        @initial_behavior
-        def beh(self, message):
-            return self.foo
-
-    a = A.create()
-    a(0)
-    x = a.act()
-    assert x == 5
+    first_msg = second_msg = third_msg = None
+    first_behavior = second_behavior = third_behavior = None
+    first = second = third = None
     
-    b = A.create(foo=3)
-    b(0)
-    y = b.act()
-    assert y == 3
+    @behavior
+    def first_beh(self, msg):
+        self.become(second_beh)
+        nonlocal first_msg, first_behavior, first
+        first_msg = msg
+        first_behavior = record()
+        first = True
+
+    @behavior
+    def second_beh(self, msg):
+        self.become(third_beh)
+        nonlocal second_msg, second_behavior, second
+        second_msg = msg
+        second_behavior = record()
+        second = True
+
+    @behavior
+    def third_beh(self, msg):
+        nonlocal third_msg, third_behavior
+        third_msg = msg
+        third_behavior = record()
+
+    def record():
+        return bool(first), bool(second), bool(third)
+        
+    serial = runtime.create(first_beh)
+    serial << 'foo'
+    serial << 'foo'
+    serial << 'foo'
+
+    EventLoop().run()
+
+    assert first_msg == 'foo' and second_msg == 'foo' and third_msg == 'foo'
+    assert first_behavior == (False, False, False)
+    assert second_behavior == (True, False, False)
+    assert third_behavior == (True, True, False)
+
+# @behavior
+# def ringlink_beh(next, context, n):
+#     next << n
+
+# @behavior
+# def ringlast_beh(first, context, n):
+#     loop_completion_times.append(time.time())
+#     if n > 1:
+#         first << n-1
+#     else:
+#         context.become(sink_beh)
+#         report()
+
+# @behavior
+# def sink_beh(context, msg):
+#     pass
+
+# @behavior
+# def ringbuilder_beh(m, context, msg):
+#     if m > 0:
+#         next = context.create(ringbuilder_beh, m-1)
+#         next << msg
+#         context.become(ringlink_beh, next)
+#     else:
+#         global construction_end_time
+#         construction_end_time = time.time()
+#         msg['first'] << msg['n']
+#         context.become(ringlast_beh, msg['first'])
+
+# def erlang_challenge(m, n):
+#     print('Starting {} actor ring'. format(m))
+#     global construction_start_time
+#     construction_start_time = time.time()
+#     ring = runtime.create(ringbuilder_beh, m)
+#     ring << {'first': ring, 'n': n}
+
+# construction_start_time = 0
+# construction_end_time = 0
+# loop_completion_times = []
+
+# def report():
+#     print('Construction time: {} seconds'.format(
+#         construction_end_time - construction_start_time))
+#     print('Loop times:')
+#     loop_completion_times.insert(0, construction_end_time)
+#     intervals = [t1-t0
+#                  for (t0, t1) in zip(loop_completion_times,
+#                                      loop_completion_times[1:])]
+#     for t in intervals:
+#         print('  {} seconds'.format(t))
+#     print('Average: {} seconds'.format(sum(intervals)/len(intervals)))
+
+# if __name__ == '__main__':
+#     erlang_challenge(int(sys.argv[1]), int(sys.argv[2]))
+#     run_loop()
