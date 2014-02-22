@@ -1,83 +1,73 @@
-from .rt import Actor, initial_behavior
-from . import eventloop
+import os
+import sys
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
+from tartpy.runtime import behavior, SimpleRuntime
+from tartpy.eventloop import EventLoop
 
-class Stateless(Actor):
-
-    @initial_behavior
-    def stateless_beh(self, message):
-        print("Stateless got message: {}".format(message))
+@behavior
+def stateless_beh(self, message):
+    print("Stateless got message: {}".format(message))
         
 
-class Stateful(Actor):
-
-    # args: state
-
-    @initial_behavior
-    def stateful_beh(self, message):
-        print("Have state: {}".format(self.state))
-        print("Stateful got message: {}".format(message))
+@behavior
+def stateful_beh(state, self, message):
+    print("Have state: {}".format(state))
+    print("Stateful got message: {}".format(message))
 
 
-class FlipFlop(Actor):
+@behavior
+def flipflop_first_beh(self, message):
+    print("First: {}".format(message))
+    self.become(flipflop_second_beh)
 
-    @initial_behavior
-    def first_beh(self, message):
-        print("First: {}".format(message))
-        self.behavior = self.second_beh
-
-    def second_beh(self, message):
-        print("Second: {}".format(message))
-        self.behavior = self.first_beh
+@behavior
+def flipflop_second_beh(self, message):
+    print("Second: {}".format(message))
+    self.become(flipflop_first_beh)
 
 
-class Chain(Actor):
+@behavior
+def chain_beh(count, self, message):
+    if count > 0:
+        print("Chain: {}".format(count))
+        next = self.create(chain_beh, count-1)
+        next << message
 
-    @initial_behavior
-    def chain_beh(self, message):
-        if self.count > 0:
-            print("Chain: {}".format(self.count))
-            next = Chain.create(count=self.count - 1)
-            next << message
+@behavior
+def echo_beh(self, message):
+    message['reply_to'] << {'answer': message}
 
-            
-class Echo(Actor):
-
-    @initial_behavior
-    def echo_beh(self, message):
-        message['reply_to'] << {'answer': message}
-
-        
-class Printer(Actor):
-    
-    @initial_behavior
-    def print_beh(self, message):
-        print('Got', message)
+@behavior
+def print_beh(self, message):
+    print('Got', message)
         
 
 def test():
-    stateless = Stateless.create()
+    runtime = SimpleRuntime()
+    
+    stateless = runtime.create(stateless_beh)
     stateless << 'some message'
     stateless << 'more message'
 
-    stateful = Stateful.create(state={'key': 5})
+    stateful = runtime.create(stateful_beh, {'key': 5})
     stateful << {'some': 'other message'}
     stateful << 10
 
-    flipflop = FlipFlop.create()
+    flipflop = runtime.create(flipflop_first_beh)
     flipflop << 'first'
     flipflop << 'second'
     flipflop << 'third'
     flipflop << 'fourth'
 
-    chain = Chain.create(count=10)
+    chain = runtime.create(chain_beh, 10)
     chain << 'go'
 
-    echo = Echo.create()
-    printer = Printer.create()
+    echo = runtime.create(echo_beh)
+    printer = runtime.create(print_beh)
     echo << {'reply_to': printer}
 
 
 if __name__ == '__main__':
     test()
-    eventloop.ThreadedEventLoop.get_loop().stop()
+    EventLoop().run()
