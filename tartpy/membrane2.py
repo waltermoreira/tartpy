@@ -54,6 +54,26 @@ class Membrane(object):
         client = getattr(self, '{}_client'.format(protocol))
         client(msg, remote)
 
+    def export(self, msg):
+        """Export a message.
+
+        Convert any actor reference to a uid. Proceed recursively to
+        convert references at any level.
+
+        """
+        if isinstance(msg, Actor):
+            uid = self.get_uid(msg)
+            return {'_proxy': uid,
+                    '_config': self.config}
+        if isinstance(msg, Mapping):
+            return {key:self.export(value)
+                    for key, value in msg.items()}
+        if isinstance(msg, str):
+            return msg
+        if isinstance(msg, Sequence):
+            return [self.export(value) for value in msg]
+        return msg
+
     def start_server(self):
         pass
     
