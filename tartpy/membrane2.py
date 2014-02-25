@@ -53,13 +53,50 @@ class Membrane(object):
     def proxy(self, uid, remote, this, msg):
         protocol = remote['protocol']
         client = getattr(self, '{}_client'.format(protocol))
-        client(self.export(msg), uid, remote)
+        client(self.marshall_message(msg), uid, remote)
 
     def local_delivery(self, uid, msg):
         """Deliver ``msg`` to actor with id ``uid``."""
-        self.uid_to_proxy[uid] << msg
+        self.uid_to_proxy[uid] << self.unmarshall_message(msg)
 
-    def export(self, msg):
+    def marshall_actor(self, actor):
+        uid = self.get_uid(actor)
+        return {'_proxy': uid,
+                '_config': self.config}
+
+    def unmarshall_actor(self, obj):
+        uid = obj['_proxy']
+        return self.get_or_create_proxy(uid, obj['_config'])
+
+    def is_marshalled_actor(self, obj):
+        try:
+            return set(obj.keys()) == {'_proxy', '_config'}
+        except AttributeError:
+            return False
+        
+    def unmarshall_message(self, msg):
+        """Import a message.
+
+        Uid identifiers of the form::
+
+            {'_proxy': uid,
+             '_transport': ...}
+
+        are substituted for the proper actor to which they refer.
+
+        """
+        if self.is_marshalled_actor(msg):
+            return self.unmarshall_actor(msg)
+        if isinstance(msg, Mapping):
+            return {key:self.unmarshall_message(value)
+                    for key, value in msg.items()}
+        if isinstance(msg, str):
+            return msg
+        if isinstance(msg, Sequence):
+            return [self.unmarshall_message(value) for value in msg]
+        return msg
+            
+    def marshall_message(self, msg):
         """Export a message.
 
         Convert any actor reference to a uid. Proceed recursively to
@@ -67,16 +104,14 @@ class Membrane(object):
 
         """
         if isinstance(msg, Actor):
-            uid = self.get_uid(msg)
-            return {'_proxy': uid,
-                    '_config': self.config}
+            return self.marshall_actor(msg)
         if isinstance(msg, Mapping):
-            return {key:self.export(value)
+            return {key:self.marshall_message(value)
                     for key, value in msg.items()}
         if isinstance(msg, str):
             return msg
         if isinstance(msg, Sequence):
-            return [self.export(value) for value in msg]
+            return [self.marshall_message(value) for value in msg]
         return msg
 
     def start_server(self):
@@ -90,20 +125,28 @@ class Membrane(object):
 
         remote['target'].local_delivery(uid, msg)
 
+
 def test():
     from .runtime import SimpleRuntime
-    from .example import print_beh
+    from .example import print_beh, echo_beh
     from .eventloop import EventLoop
 
     runtime = SimpleRuntime()
 
+    @behavior
+    def print_echo_beh(self, msg):
+        print('echo got', msg)
+        msg['reply_to'] << {'answer': msg}
+        
     mb = Membrane({'protocol': 'membrane'}, runtime)
-    printer = runtime.create(print_beh)
-    uid_at_mb = mb.get_uid(printer)
+    print_echo = runtime.create(print_echo_beh)
+    uid_at_mb = mb.get_uid(print_echo)
 
     mb2 = Membrane({'protocol': 'membrane'}, runtime)
-    proxy2 = mb2.create_proxy(uid_at_mb, {'protocol': 'membrane',
-                                          'target': mb})
+    proxy_for_echo = mb2.create_proxy(uid_at_mb, {'protocol': 'membrane',
+                                                  'target': mb})
+    printer = runtime.create(print_beh)
+    proxy_for_echo << {'tag': 5, 'reply_to': printer}
     
     evloop = EventLoop()
     
