@@ -11,6 +11,8 @@ class Membrane(object):
     
     def __init__(self, config, runtime):
         self.config = config
+        if self.config['protocol'] == 'membrane':
+            self.config['target'] = self
         self.runtime = runtime
         self.uid_to_proxy = {}
         self.proxy_to_uid = {}
