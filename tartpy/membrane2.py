@@ -1,7 +1,8 @@
 import uuid
 
+from collections.abc import Mapping, Sequence
 from logbook import Logger
-from .runtime import behavior
+from .runtime import behavior, Actor
 
 
 logger = Logger('membrane2')
@@ -30,13 +31,13 @@ class Membrane(object):
 
     def create_proxy(self, uid, remote):
         """Create proxy for ``uid`` in the ``remote`` membrane."""
-        proxy = self.runtime.create(self.proxy, remote)
+        proxy = self.runtime.create(self.proxy, uid, remote)
         self.uid_to_proxy[uid] = proxy
         self.proxy_to_uid[proxy] = uid
         return proxy
 
     def get_or_create_proxy(self, uid, remote):
-        """Get or create a new proxy for ``uid``."""
+        """Get or create a new proxy for ``uid`` in the ``remote`` membrane."""
         try:
             return self.get_proxy(uid)
         except KeyError:
@@ -49,10 +50,14 @@ class Membrane(object):
         return uid
 
     @behavior
-    def proxy(self, remote, this, msg):
+    def proxy(self, uid, remote, this, msg):
         protocol = remote['protocol']
         client = getattr(self, '{}_client'.format(protocol))
-        client(msg, remote)
+        client(self.export(msg), uid, remote)
+
+    def local_delivery(self, uid, msg):
+        """Deliver ``msg`` to actor with id ``uid``."""
+        self.uid_to_proxy[uid] << msg
 
     def export(self, msg):
         """Export a message.
@@ -77,10 +82,13 @@ class Membrane(object):
     def start_server(self):
         pass
     
-    def null_client(self, msg, remote):
-        logger.debug('Through proxy')
-        remote['target'] << msg
+    def membrane_client(self, msg, uid, remote):
+        logger.debug('membrane client')
+        logger.debug(' target: uid: %s' %uid)
+        logger.debug(' at membrane: %s' %remote['target'])
+        logger.debug(' and message is %s' %msg)
 
+        remote['target'].local_delivery(uid, msg)
 
 def test():
     from .runtime import SimpleRuntime
@@ -88,11 +96,15 @@ def test():
     from .eventloop import EventLoop
 
     runtime = SimpleRuntime()
-    mb = Membrane({}, runtime)
 
+    mb = Membrane({'protocol': 'membrane'}, runtime)
     printer = runtime.create(print_beh)
-    proxy = mb.create_proxy(4, {'protocol': 'null',
-                                'target': printer})
+    uid_at_mb = mb.get_uid(printer)
+
+    mb2 = Membrane({'protocol': 'membrane'}, runtime)
+    proxy2 = mb2.create_proxy(uid_at_mb, {'protocol': 'membrane',
+                                          'target': mb})
+    
     evloop = EventLoop()
     
     return locals()
