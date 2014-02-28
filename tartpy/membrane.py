@@ -55,6 +55,13 @@ class Membrane(object):
         client = getattr(self, '{}_client'.format(protocol))
         client(self.marshall_message(msg), uid, remote)
 
+    def start_server(self):
+        protocol = self.config['protocol']
+        server = getattr(self, '{}_server'.format(protocol))
+        self.server_thread = threading.Thread(target=server)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+    
     def local_delivery(self, uid, msg):
         """Deliver ``msg`` to actor with id ``uid``."""
         self.uid_to_proxy[uid] << self.unmarshall_message(msg)
@@ -114,9 +121,6 @@ class Membrane(object):
             return [self.marshall_message(value) for value in msg]
         return msg
 
-    def start_server(self):
-        pass
-    
     def membrane_client(self, msg, uid, remote):
         logger.debug('membrane client')
         logger.debug(' target: uid: %s' %uid)
@@ -124,6 +128,9 @@ class Membrane(object):
         logger.debug(' and message is %s' %msg)
 
         remote['target'].local_delivery(uid, msg)
+
+    def membrane_server(self):
+        pass
 
 
 def test():
