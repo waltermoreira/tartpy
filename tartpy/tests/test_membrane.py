@@ -1,88 +1,99 @@
-from tartpy.sponsor import SimpleSponsor
-from tartpy import eventloop
 import pytest
-from tartpy.membrane import Membrane, Proxy
-from tartpy.rt import Wait
 
-@pytest.fixture(scope='module')
-def ev_loop(request):
-    loop = eventloop.ThreadedEventLoop.get_loop()
-    def shutdown():
-        loop.stop()
-    request.addfinalizer(shutdown)
-    return loop
+from tartpy.runtime import SimpleRuntime, behavior
+from tartpy.eventloop import EventLoop
+from tartpy.membrane import Membrane
 
-def test_membrane(ev_loop):
-    # setup
-    m1 = Membrane.create()
-    m1.transport = {'protocol': 'null',
-                    'membrane': m1}
-    m2 = Membrane.create()
-    m2.transport = {'protocol': 'null',
-                    'membrane': m2}
-    m1 << 'start'
-    m2 << 'start'
 
-    w = Wait.create()
-    actor1 = Wait.create()
-    actor2 = Wait.create()
+def test_membrane_protocol():
+    runtime = SimpleRuntime()
+    evloop = EventLoop()
+    
+    m1 = Membrane({'protocol': 'membrane'}, runtime)
+    m2 = Membrane({'protocol': 'membrane'}, runtime)
 
-    m2 << {'get_uid': actor2,
-           'reply_to': w}
-    u2 = w.act()['uid']
+    result1 = None
+    @behavior
+    def actor1_beh(self, msg):
+        nonlocal result1
+        result1 = msg
 
-    m1 << {'create_proxy': u2,
-           'transport': {'protocol': 'null',
-                         'membrane': m2},
-           'reply_to': w}
-    proxy_for_2 = w.act()['proxy']
+    result2 = None
+    @behavior
+    def actor2_beh(self, msg):
+        nonlocal result2
+        result2 = msg
+
+    actor1 = runtime.create(actor1_beh)
+    actor2 = runtime.create(actor2_beh)
+
+    uid_for_2_at_mb2 = m2.get_uid(actor2)
+    proxy_for_2_at_mb1 = m1.create_proxy(uid_for_2_at_mb2,
+                                         m2.config)
+    
+    proxy_for_2_at_mb1 << {'foo': 5,
+                           'reply_to': actor1}
+    
+    evloop.run()
 
     # test message from m1 to m2
-    proxy_for_2 << {'foo': 5,
-                    'reply_to': actor1}
+    assert result2['foo'] == 5
 
-    msg = actor2.act()
-    assert msg['foo'] == 5
+    # test that 'reply_to' is a proxy at m2
+    proxy_for_1_at_mb2 = result2['reply_to']
+    assert proxy_for_1_at_mb2 is not actor1
 
-    # test that 'reply_to' is a proxy in m2
-    proxy_for_1 = msg['reply_to']
-    assert isinstance(proxy_for_1, Proxy)
+    proxy_for_1_at_mb2 << {'bar': 3,
+                           'reply_to': actor2}
 
-    # test a message back to m1
-    proxy_for_1 << {'bar': 3,
-                    'reply_to': actor2}
-    msg = actor1.act()
-    assert msg['bar'] == 3
+    evloop.run()
 
-    # test that proxy is reused
-    assert msg['reply_to'] is proxy_for_2
+    # test message back from m2 to m1
+    assert result1['bar'] == 3
 
-    # test a string message across domains
-    proxy_for_2 << 'a string message'
-    msg = actor2.act()
-    assert msg == 'a string message'
+    # test that proxy at m1 is reused
+    assert result1['reply_to'] is proxy_for_2_at_mb1
 
-def test_dos(ev_loop):
-    # test denial of service
-    w = Wait.create()
+    # test a string message across Membranes
+    proxy_for_2_at_mb1 << 'a string message'
+    evloop.run()
+    assert result2 == 'a string message'
+
+def test_dos():
+    runtime = SimpleRuntime()
+    m = Membrane({'protocol': 'membrane'}, runtime)
+    with pytest.raises(KeyError):
+        m.local_delivery(0, {})
+
+def test_marshall_unmarshall():
+    runtime = SimpleRuntime()
+    m = Membrane({'protocol': 'membrane'}, runtime)
+
+    assert m.marshall_message(5) == 5
+    assert m.marshall_message('foo') == 'foo'
+    assert m.marshall_message([1, 2, 'bar']) == [1, 2, 'bar']
+    assert m.marshall_message({'foo': 5, 'bar': 'baz'}) == {'foo': 5, 'bar': 'baz'}
+
+    assert m.unmarshall_message(5) == 5
+    assert m.unmarshall_message('foo') == 'foo'
+    assert m.unmarshall_message([1, 2, 'bar']) == [1, 2, 'bar']
+    assert m.unmarshall_message({'foo': 5, 'bar': 'baz'}) == {'foo': 5, 'bar': 'baz'}
+
+    @behavior
+    def sink_beh(self, msg):
+        pass
+    sink = runtime.create(sink_beh)
     
-    class ErrorSponsor(SimpleSponsor):
+    s = m.marshall_message(sink)
+    assert m.is_marshalled_actor(s)
+    assert m.unmarshall_message(s) is sink
 
-        def error(self, actor, message):
-            w << message['exception']
+    s = m.marshall_message({'foo': sink})
+    assert m.is_marshalled_actor(s['foo'])
+    assert m.unmarshall_message(s)['foo'] is sink
 
-    sponsor = ErrorSponsor()
-    m = Membrane.create(transport={'protocol': 'null'}, sponsor=sponsor)
-    m << 'start'
-    m << {'_to': 'doesnotexist', '_msg': {}}
-    exc = w.act()
-    assert exc['type'] is KeyError
-    assert exc['value'].args == ('doesnotexist',)
-    
-def test_export(ev_loop):
-    m1 = Membrane.create(transport={'protocol': 'null'})
-    a = Wait.create()
-    obj = m1.export_message({'foo': a})
-    assert '_proxy' in obj['foo']
-    obj = m1.export_message({'foo': {'bar': a}})
-    assert '_proxy' in obj['foo']['bar']
+    s = m.marshall_message([sink])
+    assert m.is_marshalled_actor(s[0])
+    assert m.unmarshall_message(s)[0] is sink
+
+
