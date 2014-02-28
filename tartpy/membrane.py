@@ -5,7 +5,7 @@ from logbook import Logger
 from .runtime import behavior, Actor
 
 
-logger = Logger('membrane2')
+logger = Logger('membrane')
 
 
 class Membrane(object):
