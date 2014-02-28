@@ -1,20 +1,30 @@
-from rt import Actor, initial_behavior
+import os
+import sys
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
-class Factorial(Actor):
+from tartpy.runtime import SimpleRuntime, behavior
+from tartpy.eventloop import EventLoop
+from tartpy.example import print_beh
 
-    @initial_behavior
-    def factorial_beh(self, message):
-        customer, n = message
-        if n == 0:
-            customer(1)
-        else:
-            multiply_by_n = Multiplier.create(customer=customer, n=n)
-            self((multiply_by_n, n-1))
+@behavior
+def factorial_beh(self, msg):
+    customer, n = msg
+    if n == 0:
+        customer << 1
+    else:
+        multiply_by_n = self.create(multiplier_beh, customer, n)
+        self << (multiply_by_n, n-1)
 
+@behavior
+def multiplier_beh(customer, n, self, m):
+    customer << m*n
 
-class Multiplier(Actor):
+def test(n):
+    runtime = SimpleRuntime()
+    fac = runtime.create(factorial_beh)
+    printer = runtime.create(print_beh)
+    fac << (printer, n)
 
-    @initial_behavior
-    def multiplier_beh(self, m):
-        self.customer(m * self.n)
-        
+if __name__ == '__main__':
+    test(int(sys.argv[1]))
+    EventLoop().run()
