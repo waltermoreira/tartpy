@@ -1,4 +1,6 @@
-"""Actor Runtime
+"""
+
+Actor Runtime
 =============
 
 The runtime provides the functions to create an actor from a behavior,
