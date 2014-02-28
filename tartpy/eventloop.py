@@ -3,16 +3,12 @@
 Very basic implementation of an event loop
 ==========================================
 
+The eventloop is a singleton to schedule and run events.
+
 Exports
 -------
 
-- ``ThreadedEventLoop``: global event loop running in a thread
-
-- ``ManualEventLoop``: global event loop to be run synchronously
-
-- ``individual_loop_step``: process one event
-
-- ``individual_loop``: process events indefinitely
+- ``EventLoop``: the basic eventloop
 
 """
 
@@ -41,7 +37,17 @@ class EventLoop(object, metaclass=Singleton):
         self.queue = queue.Queue()
 
     def schedule(self, event):
-        """Schedule an event."""
+        """Schedule an event.
+
+        The events have the form::
+
+            (event, error)
+
+        where `event` is a thunk and `error` is called with an
+        exception message (output of `_format_exception`) if there is
+        an error when executing `event`.
+
+        """
         self.queue.put(event)
 
     def stop(self):
@@ -49,6 +55,7 @@ class EventLoop(object, metaclass=Singleton):
         pass
         
     def run_step(self, block=True):
+        """Process one event."""
         ev, error = self.queue.get(block=block)
         try:
             ev()
@@ -56,6 +63,7 @@ class EventLoop(object, metaclass=Singleton):
             error(_format_exception(sys.exc_info()))
 
     def run(self):
+        """Process all events in the queue."""
         try:
             while True:
                 self.run_step(block=False)
