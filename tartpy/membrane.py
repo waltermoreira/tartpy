@@ -1,4 +1,19 @@
 import uuid
+"""
+
+Membrane
+========
+
+A membrane moves messages between configurations of actors.  The
+membrane creates proxy objects for actors before deliverying the
+message to another membrane.
+ 
+Membranes deliver and receive messages using arbitrary protocols.  A
+simple "membrane to membrane"" protocol is provided for communicating
+two membranes in the same process. Other protocols can be added by
+implementing a server and a client.
+
+"""
 
 from collections.abc import Mapping, Sequence
 from logbook import Logger
@@ -9,6 +24,15 @@ logger = Logger('membrane')
 
 
 class Membrane(object):
+    """A membrane object.
+
+    Create a membrane with `Membrane(config, runtime)`.  `config` is a
+    dictionary of the form::
+
+        {'protocol': '...',
+         ...data to connect...}
+
+    """
     
     def __init__(self, config, runtime):
         self.config = config
@@ -51,6 +75,15 @@ class Membrane(object):
 
     @behavior
     def proxy(self, uid, remote, this, msg):
+        """Behavior for a proxy.
+
+        This actor represents an actor with id `uid` in the membrane
+        `remote`.
+
+        `remote` is the config information to reach the remote
+        membrane.
+
+        """
         protocol = remote['protocol']
         client = getattr(self, '{}_client'.format(protocol))
         client(self.marshall_message(msg), uid, remote)
@@ -67,15 +100,22 @@ class Membrane(object):
         self.uid_to_proxy[uid] << self.unmarshall_message(msg)
 
     def marshall_actor(self, actor):
+        """Convert an actor to a JSON object.
+
+        Include information to reach back the local membrane.
+
+        """
         uid = self.get_uid(actor)
         return {'_proxy': uid,
                 '_config': self.config}
 
     def unmarshall_actor(self, obj):
+        """Convert a JSON object to a proxy actor."""
         uid = obj['_proxy']
         return self.get_or_create_proxy(uid, obj['_config'])
 
     def is_marshalled_actor(self, obj):
+        """Decide if a JSON object has the form of a marshalled actor."""
         try:
             return set(obj.keys()) == {'_proxy', '_config'}
         except AttributeError:
