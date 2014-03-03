@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 import pytest
 
 from tartpy.runtime import SimpleRuntime, behavior
@@ -96,4 +98,23 @@ def test_marshall_unmarshall():
     assert m.is_marshalled_actor(s[0])
     assert m.unmarshall_message(s)[0] is sink
 
+def test_client_error():
+    
+    error_msg = None
+    class MyRuntime(SimpleRuntime):
+        def error(self, msg):
+            nonlocal error_msg
+            error_msg = msg
 
+    runtime = MyRuntime()
+    
+    mb = Membrane({'protocol': 'tcp', 'ip': 'localhost', 'port': 0},
+                  runtime)
+    proxy = mb.create_proxy(0, mb.config)
+    proxy << 5
+
+    evloop = EventLoop()
+    evloop.run()
+
+    assert isinstance(error_msg, Mapping)
+    assert set(error_msg.keys()) == {'exception', 'traceback'}

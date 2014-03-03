@@ -23,8 +23,8 @@ from collections.abc import Mapping, Sequence
 
 from logbook import Logger
 
+from .eventloop import exception_message
 from .runtime import behavior, Actor
-
 
 logger = Logger('membrane')
 
@@ -92,7 +92,9 @@ class Membrane(object):
         """
         protocol = remote['protocol']
         client = getattr(self, '{}_client'.format(protocol))
-        client(self.marshall_message(msg), uid, remote)
+        ok = client(self.marshall_message(msg), uid, remote)
+        if ok is not True:
+            this.error(ok)
 
     def start_server(self):
         protocol = self.config['protocol']
@@ -191,14 +193,17 @@ class Membrane(object):
         sock = socket.socket()
         wrapped_msg = {'to': uid,
                        'msg': msg}
-        sock.connect((ip, port))
-        sock_file = sock.makefile('w', encoding='utf8')
         try:
-            sock_file.write(json.dumps(wrapped_msg) + '\n')
-        finally:
-            sock_file.close()
-            sock.close()
-        return True
+            try:
+                sock.connect((ip, port))
+                sock_file = sock.makefile('w', encoding='utf8')
+                sock_file.write(json.dumps(wrapped_msg) + '\n')
+                return True
+            finally:
+                sock_file.close()
+                sock.close()
+        except Exception as exc:
+            return exception_message()
 
     def tcp_server(self):
         """Server for tcp connections.
@@ -239,16 +244,27 @@ def test():
         print('echo got', msg)
         msg['reply_to'] << {'answer': msg}
         
-    mb = Membrane({'protocol': 'membrane'}, runtime)
+    # mb = Membrane({'protocol': 'membrane'}, runtime)
     print_echo = runtime.create(print_echo_beh)
-    uid_at_mb = mb.get_uid(print_echo)
+    # uid_at_mb = mb.get_uid(print_echo)
 
-    mb2 = Membrane({'protocol': 'membrane'}, runtime)
-    proxy_for_echo = mb2.create_proxy(uid_at_mb, {'protocol': 'membrane',
-                                                  'target': mb})
+    # mb2 = Membrane({'protocol': 'membrane'}, runtime)
+    # proxy_for_echo = mb2.create_proxy(uid_at_mb, {'protocol': 'membrane',
+    # 'target': mb})
     printer = runtime.create(print_beh)
-    proxy_for_echo << {'tag': 5, 'reply_to': printer}
+
+    # proxy_for_echo << {'tag': 5, 'reply_to': printer}
+
+    mb_tcp = Membrane({'protocol': 'tcp', 'ip': 'localhost', 'port': 5555}, runtime)
+    uid_at_mb_tcp = mb_tcp.get_uid(print_echo)
+
+    mb_tcp_2 = Membrane({'protocol': 'tcp', 'ip': 'localhost', 'port': 6666}, runtime)
+    proxy_for_echo2 = mb_tcp_2.create_proxy(uid_at_mb_tcp, mb_tcp.config)
+
+    proxy_for_echo2 << {'tag': 5, 'reply_to': printer}
     
     evloop = EventLoop()
     
     return locals()
+
+    
