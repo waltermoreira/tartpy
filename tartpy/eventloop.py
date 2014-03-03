@@ -21,9 +21,9 @@ import traceback
 from .singleton import Singleton
 
 
-def _format_exception(exc_info):
+def exception_message():
     """Create a message with details on the exception."""
-    exc_type, exc_value, exc_tb = exc_info
+    exc_type, exc_value, exc_tb = exc_info = sys.exc_info()
     return {'exception': {'type': exc_type,
                           'value': exc_value,
                           'traceback': exc_tb},
@@ -44,7 +44,7 @@ class EventLoop(object, metaclass=Singleton):
             (event, error)
 
         where `event` is a thunk and `error` is called with an
-        exception message (output of `_format_exception`) if there is
+        exception message (output of `exception_message`) if there is
         an error when executing `event`.
 
         """
@@ -60,7 +60,7 @@ class EventLoop(object, metaclass=Singleton):
         try:
             ev()
         except Exception as exc:
-            error(_format_exception(sys.exc_info()))
+            error(exception_message())
 
     def run(self):
         """Process all events in the queue."""
