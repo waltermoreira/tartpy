@@ -1,4 +1,3 @@
-import uuid
 """
 
 Membrane
@@ -15,8 +14,15 @@ implementing a server and a client.
 
 """
 
+import json
+import socket
+import socketserver
+import threading
+import uuid
 from collections.abc import Mapping, Sequence
+
 from logbook import Logger
+
 from .runtime import behavior, Actor
 
 
@@ -91,9 +97,7 @@ class Membrane(object):
     def start_server(self):
         protocol = self.config['protocol']
         server = getattr(self, '{}_server'.format(protocol))
-        self.server_thread = threading.Thread(target=server)
-        self.server_thread.daemon = True
-        self.server_thread.start()
+        server()
     
     def local_delivery(self, uid, msg):
         """Deliver ``msg`` to actor with id ``uid``."""
@@ -168,10 +172,60 @@ class Membrane(object):
         logger.debug(' and message is %s' %msg)
 
         remote['target'].local_delivery(uid, msg)
+        return True
 
     def membrane_server(self):
         pass
 
+    def tcp_client(self, msg, uid, remote):
+        """Client for socket connections.
+
+        `remote` has the form::
+
+            {'protocol': 'tcp',
+             'ip': '127.0.0.1',
+             'port': 1234}
+        """
+        ip = remote['ip']
+        port = remote['port']
+        sock = socket.socket()
+        wrapped_msg = {'to': uid,
+                       'msg': msg}
+        sock.connect((ip, port))
+        sock_file = sock.makefile('w', encoding='utf8')
+        try:
+            sock_file.write(json.dumps(wrapped_msg) + '\n')
+        finally:
+            sock_file.close()
+            sock.close()
+        return True
+
+    def tcp_server(self):
+        """Server for tcp connections.
+ 
+        Use a threaded stream server from the standard library.
+ 
+        """
+        class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+            allow_reuse_address = True
+ 
+        membrane = self
+        class ThreadedTCPHandler(socketserver.StreamRequestHandler):
+            def handle(self):
+                s = self.rfile.readline().decode('utf-8')
+                if s:
+                    wrapped_msg = json.loads(s)
+                    uid = wrapped_msg['to']
+                    msg = wrapped_msg['msg']
+                    membrane.local_delivery(uid, msg)
+ 
+        ip = self.config['ip']
+        port = self.config['port']
+        server = ThreadedTCPServer((ip, port), ThreadedTCPHandler)
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        
 
 def test():
     from .runtime import SimpleRuntime
