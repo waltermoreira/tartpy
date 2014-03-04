@@ -27,6 +27,7 @@ setup(name='tartpy',
       cmdclass = {'test': PyTest},
       install_requires=[
           "pytest >= 2.4",
+          "Logbook",
       ],
       tests_require=['pytest']
 )
