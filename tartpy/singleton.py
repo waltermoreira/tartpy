@@ -1,3 +1,16 @@
+"""
+
+Singleton
+=========
+
+Metaclass to make a class a singleton.
+
+Use as::
+
+    class MySingleton(object, metaclass=Singleton): ...
+
+"""
+
 class Singleton(type):
     
     def __init__(self, name, bases, namespace):
