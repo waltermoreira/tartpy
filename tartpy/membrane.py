@@ -194,14 +194,12 @@ class Membrane(object):
         wrapped_msg = {'to': uid,
                        'msg': msg}
         try:
-            try:
-                sock.connect((ip, port))
-                sock_file = sock.makefile('w', encoding='utf8')
-                sock_file.write(json.dumps(wrapped_msg) + '\n')
-                return True
-            finally:
-                sock_file.close()
-                sock.close()
+            sock.connect((ip, port))
+            sock_file = sock.makefile('w', encoding='utf8')
+            sock_file.write(json.dumps(wrapped_msg) + '\n')
+            sock_file.close()
+            sock.close()
+            return True
         except Exception as exc:
             return exception_message()
 
