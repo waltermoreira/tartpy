@@ -62,12 +62,17 @@ class EventLoop(object, metaclass=Singleton):
         except Exception as exc:
             error(exception_message())
 
-    def run(self):
+    def run(self, block=False):
         """Process all events in the queue."""
         try:
             while True:
-                self.run_step(block=False)
+                self.run_step(block=block)
         except queue.Empty:
             return
             
-
+    def run_in_thread(self):
+        self.thread = threading.Thread(target=self.run, args=(True,),
+                                       name='event_loop')
+        self.thread.daemon = True
+        self.thread.start()
+        
