@@ -61,6 +61,14 @@ class SimpleRuntime(AbstractRuntime):
     def error(self, message):
         print('ERROR: {0}'.format(pprint.pformat(message)))
 
+
+class Runtime(SimpleRuntime):
+
+    def __init__(self):
+        super().__init__()
+        self.evloop = EventLoop()
+        self.evloop.run_in_thread()
+        
         
 class Actor(object):
 
