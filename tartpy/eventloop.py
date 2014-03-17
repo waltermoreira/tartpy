@@ -39,13 +39,7 @@ class EventLoop(object, metaclass=Singleton):
     def schedule(self, event):
         """Schedule an event.
 
-        The events have the form::
-
-            (event, error)
-
-        where `event` is a thunk and `error` is called with an
-        exception message (output of `exception_message`) if there is
-        an error when executing `event`.
+        An `event` is a thunk.
 
         """
         self.queue.put(event)
@@ -56,11 +50,8 @@ class EventLoop(object, metaclass=Singleton):
         
     def run_step(self, block=True):
         """Process one event."""
-        ev, error = self.queue.get(block=block)
-        try:
-            ev()
-        except Exception as exc:
-            error(exception_message())
+        ev = self.queue.get(block=block)
+        ev()
 
     def run(self, block=False):
         """Process all events in the queue."""
