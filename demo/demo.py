@@ -146,3 +146,64 @@ def test_flipper():
     flipper << None
     flipper << None
 
+# ------------------------------
+
+# Actor idioms
+# - Dale Schumacher's Actor Idioms paper:
+#   https://apice.unibo.it/xwiki/bin/download/AGERE2012/AcceptedPapers/ageresplash2012submission3.pdf
+    
+# ------------------------------
+
+# Request/reply example
+    
+@behavior
+def service_beh(self, message):
+    customer = message['customer']
+    customer << 'some data'
+
+@behavior
+def log_beh(self, message):
+    print('CUSTOMER:')
+    print(message)
+
+service = runtime.create(service_beh)
+log = runtime.create(log_beh)
+
+def test_service():
+    service << {'customer': log}
+
+# ------------------------------
+
+# Forward example
+# Forwards all messages to the subject
+
+@behavior
+def forward_beh(subject, self, message):
+    subject << message
+
+forward = runtime.create(forward_beh, log)
+
+def test_forward():
+    forward << 'hi'
+    forward << 'there'
+
+# ------------------------------
+
+# One-shot example
+# Forward only a simple message
+
+@behavior
+def one_shot_beh(subject, self, message):
+    subject << message
+    self.become(ignore_beh)
+
+@behavior
+def ignore_beh(self, message):
+    pass
+
+one_shot = runtime.create(one_shot_beh, log)
+
+def test_one_shot():
+    one_shot << 'are we there yet?'
+    one_shot << 'are we there yet?'
+    one_shot << 'are we there yet?'
