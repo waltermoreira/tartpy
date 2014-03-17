@@ -73,9 +73,9 @@ class Runtime(SimpleRuntime):
 class Actor(object):
 
     def __init__(self, runtime, behavior, *args):
-        self.runtime = runtime
+        self._runtime = runtime
         self.become(behavior, *args)
-        self.ev_loop = EventLoop()
+        self._ev_loop = EventLoop()
 
     def become(self, behavior, *args):
         self._behavior = behavior(*args)
@@ -83,13 +83,13 @@ class Actor(object):
     def send(self, msg):
         def event():
             self._behavior(self, msg)
-        self.ev_loop.schedule((event, self.error))
+        self._ev_loop.schedule((event, self.error))
 
     def create(self, behavior, *args):
-        return self.runtime.create(behavior, *args)
+        return self._runtime.create(behavior, *args)
 
     def error(self, message):
-        self.runtime.error(message)
+        self._runtime.error(message)
 
     def __lshift__(self, msg):
         """Syntax sugar for sending a message.
