@@ -69,6 +69,14 @@ class Runtime(SimpleRuntime):
         self.evloop = EventLoop()
         self.evloop.run_in_thread()
         
+    def throw(self, message):
+        super().throw(message)
+        # also display human readable traceback, if possible
+        try:
+            print('\n' + ''.join(message['traceback']))
+        except (TypeError, KeyError):
+            pass
+
         
 class Actor(object):
 
