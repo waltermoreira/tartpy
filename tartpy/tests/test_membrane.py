@@ -102,7 +102,7 @@ def test_client_error():
     
     error_msg = None
     class MyRuntime(SimpleRuntime):
-        def error(self, msg):
+        def throw(self, msg):
             nonlocal error_msg
             error_msg = msg
 

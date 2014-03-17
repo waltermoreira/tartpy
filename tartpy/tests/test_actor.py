@@ -13,7 +13,7 @@ def test_runtime_error():
 
     class TestRuntime(SimpleRuntime):
 
-        def error(self, message):
+        def throw(self, message):
             nonlocal err
             err = True
 

@@ -8,7 +8,7 @@ and to report an error.  Subclass from `AbstractRuntime` to create a
 runtime class.
 
 `SimpleRuntime.create` just creates the actor, and
-`SimpleRuntime.error` prints the error message to stdout.
+`SimpleRuntime.throw` prints the error message to stdout.
 
 The behaviors are defined as::
 
@@ -49,7 +49,7 @@ class AbstractRuntime(object, metaclass=Singleton):
     def create(self, behavior, *args):
         raise NotImplementedError()
 
-    def error(self, message):
+    def throw(self, message):
         raise NotImplementedError()
 
 
@@ -58,7 +58,7 @@ class SimpleRuntime(AbstractRuntime):
     def create(self, behavior, *args):
         return Actor(self, behavior, *args)
 
-    def error(self, message):
+    def throw(self, message):
         print('ERROR: {0}'.format(pprint.pformat(message)))
 
 
@@ -83,13 +83,13 @@ class Actor(object):
     def send(self, msg):
         def event():
             self._behavior(self, msg)
-        self._ev_loop.schedule((event, self.error))
+        self._ev_loop.schedule((event, self.throw))
 
     def create(self, behavior, *args):
         return self._runtime.create(behavior, *args)
 
-    def error(self, message):
-        self._runtime.error(message)
+    def throw(self, message):
+        self._runtime.throw(message)
 
     def __lshift__(self, msg):
         """Syntax sugar for sending a message.
