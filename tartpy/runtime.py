@@ -99,6 +99,9 @@ class Actor(object):
         """
         self.send(msg)
         
+    def __call__(self, msg):
+        self.send(msg)
+
 
 def behavior(f):
     """Decorator for declaring a function as behavior.
