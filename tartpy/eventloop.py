@@ -13,22 +13,11 @@ Exports
 """
 
 import queue
-import sys
 import threading
 import time
-import traceback
 
 from .singleton import Singleton
 
-
-def exception_message():
-    """Create a message with details on the exception."""
-    exc_type, exc_value, exc_tb = exc_info = sys.exc_info()
-    return {'exception': {'type': exc_type,
-                          'value': exc_value,
-                          'traceback': exc_tb},
-            'traceback': traceback.format_exception(*exc_info)}
-    
 
 class EventLoop(object, metaclass=Singleton):
     """A generic event loop object."""

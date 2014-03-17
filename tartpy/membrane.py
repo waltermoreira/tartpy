@@ -23,8 +23,7 @@ from collections.abc import Mapping, Sequence
 
 from logbook import Logger
 
-from .eventloop import exception_message
-from .runtime import behavior, Actor
+from .runtime import behavior, Actor, exception_message
 
 logger = Logger('membrane')
 

@@ -39,6 +39,8 @@ example::
 
 from functools import wraps
 import pprint
+import sys
+import traceback
 
 from .singleton import Singleton
 from .eventloop import EventLoop
@@ -77,7 +79,16 @@ class Runtime(SimpleRuntime):
         except (TypeError, KeyError):
             pass
 
-        
+
+def exception_message():
+    """Create a message with details on the exception."""
+    exc_type, exc_value, exc_tb = exc_info = sys.exc_info()
+    return {'exception': {'type': exc_type,
+                          'value': exc_value,
+                          'traceback': exc_tb},
+            'traceback': traceback.format_exception(*exc_info)}
+    
+
 class Actor(object):
 
     def __init__(self, runtime, behavior, *args):
