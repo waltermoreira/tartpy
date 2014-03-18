@@ -263,4 +263,26 @@ race = runtime.create(race_beh, services)
 
 def test_race():
     race << {'customer': log}
-    
+
+# ------------------------------
+
+# Revocable example
+
+@behavior
+def revocable_beh(actor, self, message):
+    if message is actor:
+        self.become(ignore_beh)
+    else:
+        actor << message
+
+log_proxy = runtime.create(revocable_beh, log)
+
+def test_revocable():
+    log_proxy << 'hi'
+    log_proxy << 'there'
+
+    # revoke
+    log_proxy << log
+
+    log_proxy << 'hi again'
+    log << 'hi, log'
