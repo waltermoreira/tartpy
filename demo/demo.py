@@ -207,3 +207,60 @@ def test_one_shot():
     one_shot << 'are we there yet?'
     one_shot << 'are we there yet?'
     one_shot << 'are we there yet?'
+
+# ------------------------------
+
+# Label example
+# A forward actor that adds some fixed information to the message
+
+@behavior
+def label_beh(subject, label, self, message):
+    subject << {'label': label,
+                'message': message}
+
+label = runtime.create(label_beh, log, 'ALL THE THINGS!')
+
+def test_label():
+    label << 'label me'
+    label << 17
+    label << {'some', 'object'}
+
+# ------------------------------
+
+# Race example
+# Try things in parallel and pick the first one
+
+@behavior
+def race_beh(services, self, message):
+    customer = message['customer']
+    one_shot = self.create(one_shot_beh, customer)
+    message['customer'] = one_shot
+
+    for service in services:
+        service << message
+
+from random import random
+from tartpy.eventloop import EventLoop
+
+@behavior
+def random_service_beh(uid, self, message):
+    customer = message['customer']
+    EventLoop().later(random()*10,
+                      lambda: customer << {'id': uid})
+
+services = [runtime.create(random_service_beh, 1),
+            runtime.create(random_service_beh, 2),
+            runtime.create(random_service_beh, 3),
+            runtime.create(random_service_beh, 4),
+            runtime.create(random_service_beh, 5),
+            runtime.create(random_service_beh, 6),
+            runtime.create(random_service_beh, 7),
+            runtime.create(random_service_beh, 8),
+            runtime.create(random_service_beh, 9),
+            runtime.create(random_service_beh, 10)]
+
+race = runtime.create(race_beh, services)
+
+def test_race():
+    race << {'customer': log}
+    
