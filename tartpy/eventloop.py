@@ -34,6 +34,9 @@ class EventLoop(object, metaclass=Singleton):
         """
         self.scheduler.enter(0, 1, event)
 
+    def later(self, delay, event):
+        self.scheduler.enter(delay, 1, event)
+        
     def stop(self):
         """Stop the loop."""
         pass
