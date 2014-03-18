@@ -51,7 +51,7 @@ Run example with:
 
 .. code-block:: bash
 
-   python3 example.py
+   python3 tartpy/example.py
 
 Press ``Ctrl-C`` to stop the event loops and exit.
 
@@ -62,7 +62,7 @@ Create a ring of ``M`` actors, sending ``N`` messages around the ring:
 
 .. code-block:: bash
 
-   python3 erlang_challenge.py M N
+   python3 tartpy/erlang_challenge.py M N
 
 Benchmarks
 ----------
