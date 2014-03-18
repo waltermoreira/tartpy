@@ -41,8 +41,13 @@ class EventLoop(object, metaclass=Singleton):
     def run(self, block=False):
         self.scheduler.run(blocking=block)
 
+    def run_forever(self, wait=0.05):
+        while True:
+            self.run()
+            time.sleep(wait)
+            
     def run_in_thread(self):
-        self.thread = threading.Thread(target=self.run, args=(True,),
+        self.thread = threading.Thread(target=self.run_forever,
                                        name='event_loop')
         self.thread.daemon = True
         self.thread.start()
