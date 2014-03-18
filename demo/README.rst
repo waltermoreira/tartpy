@@ -21,4 +21,6 @@ Differences with `tartjs` demo
       a(m)
       a.send(m)
 
-
+- Membranes in `tartpy` have a different structure than in `tartjs`,
+  so the example for sending messages between memory domains are
+  considerably different.
