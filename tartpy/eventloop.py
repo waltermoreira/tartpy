@@ -13,6 +13,7 @@ Exports
 """
 
 import queue
+import sched
 import threading
 import time
 
@@ -23,7 +24,7 @@ class EventLoop(object, metaclass=Singleton):
     """A generic event loop object."""
 
     def __init__(self):
-        self.queue = queue.Queue()
+        self.scheduler = sched.scheduler()
 
     def schedule(self, event):
         """Schedule an event.
@@ -31,25 +32,15 @@ class EventLoop(object, metaclass=Singleton):
         An `event` is a thunk.
 
         """
-        self.queue.put(event)
+        self.scheduler.enter(0, 1, event)
 
     def stop(self):
         """Stop the loop."""
         pass
         
-    def run_step(self, block=True):
-        """Process one event."""
-        ev = self.queue.get(block=block)
-        ev()
-
     def run(self, block=False):
-        """Process all events in the queue."""
-        try:
-            while True:
-                self.run_step(block=block)
-        except queue.Empty:
-            return
-            
+        self.scheduler.run(blocking=block)
+
     def run_in_thread(self):
         self.thread = threading.Thread(target=self.run, args=(True,),
                                        name='event_loop')
