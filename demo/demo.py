@@ -286,3 +286,38 @@ def test_revocable():
 
     log_proxy << 'hi again'
     log << 'hi, log'
+
+# ------------------------------
+
+# Membrane example
+
+from tartpy.membrane import Membrane
+
+# An echo actor that replies to the customer
+
+@behavior
+def echo_beh(self, message):
+    print('Echo:', message)
+    message['customer'] << {'reply': message}
+
+echo = runtime.create(echo_beh)
+
+# Create a membrane listening on tcp://localhost:5555
+mb1 = Membrane({'protocol': 'tcp', 'ip': 'localhost', 'port': 5555}, runtime)
+
+# Ask the membrane for a secure identifier, so it can be the actor
+# `echo` can be introduced to other membranes
+uid_at_mb1 = mb1.get_uid(echo)
+
+# Create another membrane at tcp://localhost:6666
+mb2 = Membrane({'protocol': 'tcp', 'ip': 'localhost', 'port': 6666}, runtime)
+
+# Introduce the uid for `echo` to the new membrane, who creates a proxy for `echo`
+proxy_for_echo = mb2.create_proxy(uid_at_mb1, mb1.config)
+
+# Send a message to the proxy and reply to `log`. Notice that the
+# membranes will automatically create a proxy for `log`.  The
+# introduction using `get_uid`/`create_proxy` *only* needs to be done
+# once.
+def test_proxy():
+    proxy_for_echo << {'foo': 5, 'customer': log}
