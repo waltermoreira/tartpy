@@ -55,6 +55,9 @@ Run example with:
 
 Press ``Ctrl-C`` to stop the event loops and exit.
 
+There is also an `IPython notebook`_ showing the basic properties of actors.
+
+
 Erlang Challenge
 ================
 
@@ -89,3 +92,4 @@ For ``M = 100000`` and ``N = 10``::
 .. _@dalnefre: https://github.com/dalnefre
 .. _@tristanls: https://github.com/tristanls
 .. _capability based approach: http://en.wikipedia.org/wiki/Capability-based_security
+.. _IPython notebook: http://nbviewer.ipython.org/github/waltermoreira/tartpy/blob/master/demo/tartpy_demo.ipynb
