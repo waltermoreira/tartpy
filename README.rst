@@ -30,7 +30,11 @@ as a bug to this project.
 Installing
 ==========
 
-Clone this repository and install with ``python3 setup.py install``::
+Install with::
+
+    $ pip install git+https://github.com/waltermoreira/tartpy
+
+or clone this repository and install with ``python3 setup.py install``::
 
     $ git clone https://github.com/waltermoreira/tartpy
     $ cd tartpy
