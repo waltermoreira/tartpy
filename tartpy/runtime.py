@@ -37,7 +37,7 @@ example::
 
 """
 
-from functools import wraps
+from functools import wraps, partial
 import pprint
 import sys
 import traceback
@@ -97,7 +97,7 @@ class Actor(object):
         self._ev_loop = EventLoop()
 
     def become(self, behavior, *args):
-        self._behavior = behavior(*args)
+        self._behavior = partial(behavior, *args)
 
     def send(self, msg):
         def event():
@@ -138,10 +138,5 @@ def behavior(f):
     `x` and `y`.
 
     """
-    @wraps(f)
-    def wrapper(*args):
-        def _f(self, msg):
-            f(*(args + (self, msg)))
-        return _f
-    return wrapper
+    return f
 
