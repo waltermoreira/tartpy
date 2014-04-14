@@ -80,6 +80,7 @@ class MembraneFactory(object):
 def test():
     from .runtime import Runtime
     from .example import print_beh, echo_beh
+    from .tools import Wait
     
     runtime = Runtime()
 
@@ -95,19 +96,16 @@ def test():
 
     print_echo = runtime.create(print_echo_beh)
     print('print_echo:', print_echo)
-    
-    @behavior
-    def go_beh(self, msg):
-        if msg == 'go':
-            membrane << {'tag': 'create_proxy',
-                         'actor': print_echo,
-                         'customer': self}
-        else:
-            print('got back:', msg)
-            msg << {'customer': printer}
 
-    go = runtime.create(go_beh)
-    go << 'go'
+    w = Wait()
+    wait = runtime.create(w.wait_beh)
+
+    membrane << {'tag': 'create_proxy',
+                 'actor': print_echo,
+                 'customer': wait}
+    proxy = w.join()
+    proxy << {'customer': printer}
+    
     return membrane_inst
 
     
