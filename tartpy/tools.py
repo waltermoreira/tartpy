@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 import time
 
 from .runtime import behavior, Actor, exception_message, Runtime
@@ -43,3 +44,18 @@ def later(actor, t, msg):
 def log_beh(self, message):
     print('LOG:', message)
 
+
+def actor_map(f, message):
+    """Map a function f:{Actor} -> B to a message."""
+
+    if isinstance(message, Actor):
+        return f(message)
+    if isinstance(message, Mapping):
+        return {actor_map(f, key): actor_map(f, value)
+                for key, value in message.items()}
+    if isinstance(message, str):
+        return message
+    if isinstance(message, Sequence):
+        return [actor_map(f, value) for value in message]
+    return message
+    
