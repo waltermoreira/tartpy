@@ -17,6 +17,7 @@ from collections.abc import Mapping, Sequence
 from logbook import Logger
 
 from .runtime import behavior, Actor, exception_message
+from .tools import actor_map
 
 logger = Logger('membrane')
 
@@ -63,19 +64,12 @@ class MembraneFactory(object):
         actor << self.convert(this, message)
 
     def convert(self, this, message):
-        if isinstance(message, Actor):
-            if self._is_proxy(message):
-                return message
-            else:
-                return self._create_proxy(this, message)
-        if isinstance(message, Mapping):
-            return {self.convert(this, key): self.convert(this, value)
-                    for key, value in message.items()}
-        if isinstance(message, str):
-            return message
-        if isinstance(message, Sequence):
-            return [self.convert(this, value) for value in message]
-        return message
+        def f(actor):
+            return (actor
+                    if self._is_proxy(actor)
+                    else self._create_proxy(this, actor))
+        return actor_map(f, message)
+
 
 def test():
     from .runtime import Runtime
