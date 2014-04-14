@@ -44,7 +44,16 @@ class MembraneFactory(object):
         return actor in self.proxy_to_actor
         
     def create_proxy(self, this, message):
-        """Create proxy for ``uid`` in the ``remote`` membrane."""
+        """Create proxy for an actor.
+
+        `message` has the form::
+
+            {'tag': 'create_proxy',
+             'actor': ...,
+             'customer': ...
+            }
+
+        """
         actor = message['actor']
         proxy = self._create_proxy(this, actor)
         message['customer'] << proxy
