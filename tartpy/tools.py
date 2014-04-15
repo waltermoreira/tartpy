@@ -45,17 +45,22 @@ def log_beh(self, message):
     print('LOG:', message)
 
 
-def actor_map(f, message):
-    """Map a function f:{Actor} -> B to a message."""
+def dict_map(f, primitive, dic):
+    """Map a function f:{primitive} -> B to a dictionary."""
 
-    if isinstance(message, Actor):
-        return f(message)
-    if isinstance(message, Mapping):
-        return {actor_map(f, key): actor_map(f, value)
-                for key, value in message.items()}
-    if isinstance(message, str):
-        return message
-    if isinstance(message, Sequence):
-        return [actor_map(f, value) for value in message]
-    return message
-    
+    if primitive(dic):
+        return f(dic)
+    if isinstance(dic, Mapping):
+        return {dict_map(f, primitive, key): dict_map(f, primitive, value)
+                for key, value in dic.items()}
+    if isinstance(dic, str):
+        return dic
+    if isinstance(dic, Sequence):
+        return [dict_map(f, primitive, value) for value in dic]
+    return dic
+
+
+def actor_map(f, message):
+    def primitive(x):
+        return isinstance(x, Actor)
+    return dict_map(f, primitive, message)
