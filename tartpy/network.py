@@ -37,18 +37,18 @@ class NetworkRuntime(Runtime):
     def marshall_actor(self, actor):
         uid = self.uid_for_actor(actor)
         return {'_url': self.url,
-                '_uid': self.uid}
+                '_uid': uid}
 
     def marshall(self, message):
         return actor_map(self.marshall_actor, message)
 
     def unmarshall_actor(self, msg):
-        return self.actor_for_uid(msg['url'], msg['uid'])
+        return self.actor_for_uid(msg['_url'], msg['_uid'])
 
     def unmarshall(self, message):
         def primitive(x):
             return (isinstance(x, Mapping) and
-                    set(x.keys()) == {'_uid', 'url'})
+                    set(x.keys()) == {'_uid', '_url'})
         return dict_map(self.unmarshall_actor, primitive, message)
         
     @behavior
