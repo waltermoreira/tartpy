@@ -151,3 +151,16 @@ class TCPServer(AbstractServer):
 
 
 network_runtime = NetworkRuntime('tcp://localhost:1234')
+
+
+def test():
+    from .tools import log_beh
+    
+    runtime = network_runtime
+    log = runtime.create(log_beh)
+
+    uid = runtime.uid_for_actor(log)
+    proxy = runtime.create(runtime.proxy_beh, runtime.url, uid)
+    
+    return locals()
+    
