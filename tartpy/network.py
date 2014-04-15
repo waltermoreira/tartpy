@@ -19,7 +19,7 @@ class NetworkRuntime(Runtime):
 
         self.server_type = TCPServer
         self.server = self.network_server()
-        self.clients = {}
+        self.client_type = {'tcp': TCPClient}
 
     def uid_for_actor(self, actor):
         uid = self.actor_to_uid.setdefault(actor, uuid.uuid4().hex)
@@ -64,7 +64,7 @@ class NetworkRuntime(Runtime):
     def network_client(self, url):
         scheme = urlparse(url).scheme
         try:
-            return self.clients[scheme](self, url)
+            return self.client_type[scheme](self, url)
         except KeyError:
             self.throw({'error': "no client for scheme '{}'".format(scheme)})
         
