@@ -19,7 +19,10 @@ class NetworkRuntime(Runtime):
 
         self.server_type = TCPServer
         self.server = self.network_server()
+        self.server.start()
+
         self.client_type = {'tcp': TCPClient}
+
 
     def uid_for_actor(self, actor):
         uid = self.actor_to_uid.setdefault(actor, uuid.uuid4().hex)
