@@ -22,6 +22,7 @@ class NetworkRuntime(Runtime):
         self.server.start()
 
         self.client_type = {'tcp': TCPClient}
+        self.clients = {}
 
     def uid_for_actor(self, actor):
         uid = self.actor_to_uid.setdefault(actor, uuid.uuid4().hex)
@@ -58,13 +59,29 @@ class NetworkRuntime(Runtime):
         msg = self.marshall(message)
         self.network_send(remote_url, uid, msg)
 
-    def network_send(self, remote_url, uid, msg):
+    def network_send(self, remote_url, uid, msg, retry=2):
         client = self.network_client(remote_url)
-        client.send({'_to': uid,
-                     '_msg': msg})
+        try:
+            client.send({'_to': uid,
+                         '_msg': msg})
+            return
+        except OSError as e:
+            if retry == 2:
+                client.connect()
+                self.network_send(remote_url, uid, msg, retry=1)
+            elif retry == 1:
+                del self.clients[remote_url]
+                self.network_send(remote_url, uid, msg, retry=0)
+            else:
+                self.throw('client failed to send to {}'.format(remote_url))
 
     def network_client(self, url):
-        return self.choose_for_scheme(url, self.client_type)(self, url)
+        try:
+            return self.clients[url]
+        except KeyError:
+            client = self.choose_for_scheme(url, self.client_type)(self, url)
+            self.clients[url] = client
+            return client
 
     def network_server(self):
         return self.choose_for_scheme(self.url, self.server_type)(self)
@@ -84,6 +101,9 @@ class AbstractClient(object):
         self.runtime = runtime
         self.url = url
 
+    def connect(self):
+        pass
+
     def send(self, message):
         pass
 
@@ -95,14 +115,16 @@ class TCPClient(AbstractClient):
         parsed = urlparse(url)
         self.host = parsed.hostname
         self.port = parsed.port
+        self.connect()
+
+    def connect(self):
         self.socket = socket.socket()
         self.socket.connect((self.host, self.port))
         self.socket_file = self.socket.makefile('w', encoding='utf-8')
 
     def send(self, message):
         self.socket_file.write(json.dumps(message) + '\n')
-        self.socket_file.close()
-        self.socket.close()
+        self.socket_file.flush()
         
         
 class AbstractServer(object):
