@@ -150,12 +150,12 @@ class TCPServer(AbstractServer):
         target << self.runtime.unmarshall(msg)
 
 
-network_runtime = NetworkRuntime('tcp://localhost:1234')
 
 
-def test():
+def test(port):
     from .tools import log_beh
     
+    network_runtime = NetworkRuntime('tcp://localhost:{}'.format(port))
     runtime = network_runtime
     log = runtime.create(log_beh)
 
