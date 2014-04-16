@@ -131,9 +131,10 @@ class TCPServer(AbstractServer):
  
         class ThreadedTCPHandler(socketserver.StreamRequestHandler):
             def handle(this):
-                
-                s = this.rfile.readline().decode('utf-8')
-                if s:
+                while True:
+                    s = this.rfile.readline().decode('utf-8')
+                    if not s:
+                        return
                     wrapped_msg = json.loads(s)
                     self.receive_message(wrapped_msg)
 
