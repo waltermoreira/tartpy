@@ -17,12 +17,11 @@ class NetworkRuntime(Runtime):
         self.uid_to_actor = {}
         self.actor_to_uid = {}
 
-        self.server_type = TCPServer
+        self.server_type = {'tcp': TCPServer}
         self.server = self.network_server()
         self.server.start()
 
         self.client_type = {'tcp': TCPClient}
-
 
     def uid_for_actor(self, actor):
         uid = self.actor_to_uid.setdefault(actor, uuid.uuid4().hex)
@@ -65,18 +64,19 @@ class NetworkRuntime(Runtime):
                      '_msg': msg})
 
     def network_client(self, url):
+        return self.choose_for_scheme(url, self.client_type)(self, url)
+
+    def network_server(self):
+        return self.choose_for_scheme(self.url, self.server_type)(self)
+
+    def choose_for_scheme(self, url, dic):
         scheme = urlparse(url).scheme
         try:
-            return self.client_type[scheme](self, url)
+            return dic[scheme]
         except KeyError:
-            self.throw({'error': "no client for scheme '{}'".format(scheme)})
+            self.throw({'error': "no client/server for scheme '{}'"
+                        .format(scheme)})
         
-    def network_server(self):
-        if self.server_type is not None:
-            return self.server_type(self)
-        scheme = urlparse(self.url).scheme
-        self.throw({'error': "no server for scheme '{}'".format(scheme)})
-
 
 class AbstractClient(object):
 
