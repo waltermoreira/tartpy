@@ -7,11 +7,10 @@ Python implementation of the `Actor Model`_ inspired from `tart.js`_.
 Overview
 ========
 
-The ideas for ``tartpy`` are shamelessly stolen from `@dalnefre`_ and
-`@tristanls`_.  The differences are mainly to follow a more "Pythonic"
-syntax.  When in doubt about semantics, Dale's and Tristan's
-``tartjs`` is probably the correct one.  Please, report the divergence
-as a bug to this project.
+The initial ideas for ``tartpy`` are copied from `@dalnefre`_ and
+`@tristanls`_.  At the beginning, the goal was to replicate `tart.js`_
+in Python.  Lately, it has diverged slightly, to experiment with the
+new Python asynchrony model introduced in version 3.4.
 
 ``tartpy`` aims to be an actor library with the following features:
 
@@ -24,8 +23,8 @@ as a bug to this project.
 
 - it implements a `capability based approach`_ to isolate actors,
   using membranes (again, the ideas are due to `@dalnefre`_ and
-  `@tristanls`_).  This is the point where the semantics of ``tartpy``
-  may not fully match ``tartjs``'.  Use with care.
+  `@tristanls`_).  The semantics of membranes may differ between
+  ``tartpy`` and ``tartjs``.
 
 Installing
 ==========
@@ -48,8 +47,8 @@ Run tests with::
     $ python3 setup.py test
 
 
-Example
-=======
+Examples
+========
 
 Run example with:
 
@@ -57,9 +56,10 @@ Run example with:
 
    python3 tartpy/example.py
 
-Press ``Ctrl-C`` to stop the event loops and exit.
-
 There is also an `IPython notebook`_ showing the basic properties of actors.
+
+The project `actor_model`_ contains slides and IPython notebooks from
+a talk presented at TACC_ in April 17, 2014.
 
 
 Erlang Challenge
@@ -97,3 +97,5 @@ For ``M = 100000`` and ``N = 10``::
 .. _@tristanls: https://github.com/tristanls
 .. _capability based approach: http://en.wikipedia.org/wiki/Capability-based_security
 .. _IPython notebook: http://nbviewer.ipython.org/github/waltermoreira/tartpy/blob/master/demo/tartpy_demo.ipynb
+.. _actor_model: https://github.com/waltermoreira/actor_model
+.. _TACC: https://www.tacc.utexas.edu/
