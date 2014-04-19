@@ -43,7 +43,7 @@ import sys
 import traceback
 
 from .singleton import Singleton
-from .eventloop import EventLoop
+from .eventloop import EventLoop, AsyncioEventLoop
 
 
 class AbstractRuntime(object, metaclass=Singleton):
@@ -68,7 +68,7 @@ class Runtime(SimpleRuntime):
 
     def __init__(self):
         super().__init__()
-        self.evloop = EventLoop()
+        self.evloop = AsyncioEventLoop()
         self.evloop.run_in_thread()
         
     def throw(self, message):
@@ -94,7 +94,7 @@ class Actor(object):
     def __init__(self, runtime, behavior, *args):
         self._runtime = runtime
         self.become(behavior, *args)
-        self._ev_loop = EventLoop()
+        self._ev_loop = AsyncioEventLoop()
 
     def become(self, behavior, *args):
         self._behavior = partial(behavior, *args)
@@ -105,7 +105,7 @@ class Actor(object):
                 self._behavior(self, msg)
             except Exception as exc:
                 self.throw(exception_message())
-        self._ev_loop.schedule(event)
+        self._ev_loop.schedule(self, event)
 
     def create(self, behavior, *args):
         return self._runtime.create(behavior, *args)
