@@ -28,9 +28,9 @@ class EventLoop(object, metaclass=Singleton):
         self.num_workers = num_workers
         self.schedulers = [sched.scheduler() for _ in range(num_workers)]
 
-    def hash(self, actor):
-        return int(hashlib.sha1(str(id(actor)).encode('utf8')).hexdigest(),
-                   16) % self.num_workers
+    def actor_hash(self, actor):
+        x = hash(actor) % self.num_workers
+        return x
         
     def schedule(self, target, event):
         """Schedule an event.
@@ -38,13 +38,9 @@ class EventLoop(object, metaclass=Singleton):
         An `event` is a thunk.
 
         """
-        h = self.hash(target)
-        def tagged_event():
-            print('executing in scheduler:', scheduler)
-            print('in thread', threading.current_thread().name)
-            event()
+        h = self.actor_hash(target)
         scheduler = self.schedulers[h]
-        scheduler.enter(0, 1, tagged_event)
+        scheduler.enter(0, 1, event)
 
     def later(self, delay, event):
         self.scheduler.enter(delay, 1, event)
@@ -62,11 +58,11 @@ class EventLoop(object, metaclass=Singleton):
             self.run()
             time.sleep(wait)
 
-    def run_sched_forever(self, sched, wait=0.05):
+    def run_sched_forever(self, sched, wait=0.00001):
         while True:
-            sched.run()
+            sched.run(blocking=False)
             time.sleep(wait)
-            
+
     def run_in_thread(self):
         self.threads = []
         for i, sched in enumerate(self.schedulers):

@@ -4,7 +4,7 @@ import time
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
-from tartpy.runtime import behavior, SimpleRuntime
+from tartpy.runtime import behavior, SimpleRuntime, Runtime
 from tartpy.eventloop import EventLoop
 
 construction_start_time = 0
@@ -44,7 +44,7 @@ def ringbuilder_beh(m, self, msg):
 def erlang_challenge(m, n):
     print('Starting {} actor ring'. format(m))
     global construction_start_time
-    runtime = SimpleRuntime()
+    runtime = Runtime()
     construction_start_time = time.time()
     ring = runtime.create(ringbuilder_beh, m)
     ring << {'first': ring, 'n': n}
@@ -66,4 +66,5 @@ if __name__ == '__main__':
     m = int(sys.argv[1])
     n = int(sys.argv[2])
     erlang_challenge(m, n)
-    EventLoop().run()
+    time.sleep(20)
+#    EventLoop().run_forever()

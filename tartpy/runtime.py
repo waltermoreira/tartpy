@@ -105,7 +105,7 @@ class Actor(object):
                 self._behavior(self, msg)
             except Exception as exc:
                 self.throw(exception_message())
-        self._ev_loop.schedule(event)
+        self._ev_loop.schedule(self, event)
 
     def create(self, behavior, *args):
         return self._runtime.create(behavior, *args)
