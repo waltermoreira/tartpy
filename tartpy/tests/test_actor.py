@@ -24,7 +24,7 @@ def test_runtime_error():
     test_rt = TestRuntime()
     x = test_rt.create(beh)
     x << 5
-    EventLoop().run()
+    EventLoop().run_once()
     assert err is True
     
     
@@ -44,7 +44,7 @@ def test_self_create():
 
     x = runtime.create(beh)
     x << 5
-    EventLoop().run()
+    EventLoop().run_once()
     assert result == 5
     
 
@@ -59,7 +59,7 @@ def test_receive_message():
 
     a = runtime.create(beh)
     a << 5
-    EventLoop().run()
+    EventLoop().run_once()
     assert result == 5
 
 def test_create_with_args():
@@ -73,7 +73,7 @@ def test_create_with_args():
 
     a = runtime.create(beh, True)
     a << 0
-    EventLoop().run()
+    EventLoop().run_once()
     assert result is True
 
 def test_one_shot():
@@ -105,7 +105,7 @@ def test_one_shot():
     one_shot << 'first'
     one_shot << 'second'
 
-    EventLoop().run()
+    EventLoop().run_once()
     assert message == 'first'
     assert sink_beh_done and destination_beh_done
     
@@ -145,7 +145,7 @@ def test_serial():
     serial << 'foo'
     serial << 'foo'
 
-    EventLoop().run()
+    EventLoop().run_once()
 
     assert first_msg == 'foo' and second_msg == 'foo' and third_msg == 'foo'
     assert first_behavior == (False, False, False)

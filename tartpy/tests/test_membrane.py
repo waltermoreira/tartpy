@@ -42,12 +42,13 @@ def test_membrane_protocol():
     go = runtime.create(go_beh)
     go << 'go'
 
-    evloop.run()
+    evloop.run_once()
+    evloop.run_once()
 
     actor2_proxy << {'foo': 5,
                      'customer': actor1}
 
-    evloop.run()
+    evloop.run_once()
 
     # test message from actor1 to actor2
     assert result2['foo'] == 5
@@ -59,7 +60,7 @@ def test_membrane_protocol():
     actor1_proxy << {'bar': 3,
                      'customer': actor2}
 
-    evloop.run()
+    evloop.run_once()
 
     # test message from actor2 to actor1
     assert result1['bar'] == 3
@@ -69,6 +70,6 @@ def test_membrane_protocol():
 
     # test a string message
     actor2_proxy << 'a string message'
-    evloop.run()
+    evloop.run_once()
     assert result2 == 'a string message'
 
