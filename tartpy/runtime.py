@@ -43,7 +43,7 @@ import sys
 import traceback
 
 from .singleton import Singleton
-from .eventloop import EventLoop, AsyncioEventLoop
+from .eventloop import EventLoop
 
 
 class AbstractRuntime(object, metaclass=Singleton):
@@ -66,11 +66,6 @@ class SimpleRuntime(AbstractRuntime):
 
 class Runtime(SimpleRuntime):
 
-    def __init__(self):
-        super().__init__()
-        self.evloop = AsyncioEventLoop()
-        self.evloop.run_in_thread()
-        
     def throw(self, message):
         super().throw(message)
         # also display human readable traceback, if possible
@@ -79,6 +74,14 @@ class Runtime(SimpleRuntime):
         except (TypeError, KeyError):
             pass
 
+
+class ThreadedRuntime(Runtime):
+
+    def __init__(self):
+        super().__init__()
+        self.evloop = EventLoop()
+        self.evloop.run_in_thread()
+        
 
 def exception_message():
     """Create a message with details on the exception."""
@@ -94,7 +97,7 @@ class Actor(object):
     def __init__(self, runtime, behavior, *args):
         self._runtime = runtime
         self.become(behavior, *args)
-        self._ev_loop = AsyncioEventLoop()
+        self._ev_loop = EventLoop()
 
     def become(self, behavior, *args):
         self._behavior = partial(behavior, *args)
