@@ -22,42 +22,6 @@ from .singleton import Singleton
 
 
 class EventLoop(object, metaclass=Singleton):
-    """A generic event loop object."""
-
-    def __init__(self):
-        self.scheduler = sched.scheduler()
-
-    def schedule(self, event):
-        """Schedule an event.
-
-        An `event` is a thunk.
-
-        """
-        self.scheduler.enter(0, 1, event)
-
-    def later(self, delay, event):
-        self.scheduler.enter(delay, 1, event)
-        
-    def stop(self):
-        """Stop the loop."""
-        pass
-        
-    def run(self, block=False):
-        self.scheduler.run(blocking=block)
-
-    def run_forever(self, wait=0.05):
-        while True:
-            self.run()
-            time.sleep(wait)
-            
-    def run_in_thread(self):
-        self.thread = threading.Thread(target=self.run_forever,
-                                       name='event_loop')
-        self.thread.daemon = True
-        self.thread.start()
-
-
-class AsyncioEventLoop(object, metaclass=Singleton):
 
     def __init__(self):
         self.loop = asyncio.get_event_loop()
@@ -79,10 +43,20 @@ class AsyncioEventLoop(object, metaclass=Singleton):
         self.do = self.sync_do
         self.loop.run_forever()
 
+    def run_once(self):
+        self.stop_later()
+        self.run()
+        
     def run_in_thread(self):
         self.do = self.thread_do
         self.thread = threading.Thread(target=self.loop.run_forever,
                                        name='asyncio_event_loop')
         self.thread.daemon = True
         self.thread.start()
-        
+
+    def stop(self):
+        self.loop.stop()
+
+    def stop_later(self):
+        self.do = self.sync_do
+        self.schedule(self, self.stop)
