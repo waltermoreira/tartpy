@@ -4,8 +4,8 @@ import time
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
-from tartpy.runtime import behavior, SimpleRuntime
-from tartpy.eventloop import EventLoop
+from tartpy.runtime import behavior, SimpleRuntime, Runtime
+from tartpy.eventloop import EventLoop, AsyncioEventLoop
 
 construction_start_time = 0
 construction_end_time = 0
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     m = int(sys.argv[1])
     n = int(sys.argv[2])
     erlang_challenge(m, n)
-    EventLoop().run()
+    AsyncioEventLoop().run()
