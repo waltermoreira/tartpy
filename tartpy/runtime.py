@@ -79,6 +79,12 @@ class ThreadedRuntime(Runtime):
 
     def __init__(self):
         super().__init__()
+        self.restart()
+
+    def pause(self):
+        self.evloop.stop()
+
+    def restart(self):
         self.evloop = EventLoop()
         self.evloop.run_in_thread()
         
