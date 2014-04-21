@@ -55,7 +55,7 @@ class EventLoop(object, metaclass=Singleton):
         self.thread.start()
 
     def stop(self):
-        self.loop.stop()
+        self.thread_do(self.loop.stop)
 
     def stop_later(self):
         self.do = self.sync_do
