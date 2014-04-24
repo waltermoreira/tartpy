@@ -57,6 +57,10 @@ class AbstractRuntime(object, metaclass=Singleton):
 
 class SimpleRuntime(AbstractRuntime):
 
+    def __init__(self):
+        super().__init__()
+        self.loop = EventLoop()
+        
     def create(self, behavior, *args):
         return Actor(self, behavior, *args)
 
@@ -103,7 +107,7 @@ class Actor(object):
     def __init__(self, runtime, behavior, *args):
         self._runtime = runtime
         self.become(behavior, *args)
-        self._ev_loop = EventLoop()
+        self._loop = self._runtime.loop
 
     def become(self, behavior, *args):
         self._behavior = partial(behavior, *args)
@@ -114,7 +118,7 @@ class Actor(object):
                 self._behavior(self, msg)
             except Exception as exc:
                 self.throw(exception_message())
-        self._ev_loop.schedule(self, event)
+        self._loop.schedule(self, event)
 
     def create(self, behavior, *args):
         return self._runtime.create(behavior, *args)
