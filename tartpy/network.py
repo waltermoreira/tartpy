@@ -8,14 +8,14 @@ import uuid
 
 from logbook import Logger
 
-from .runtime import Runtime, behavior, Actor
+from .runtime import ThreadedRuntime, behavior, Actor
 from .tools import actor_map, dict_map
 
 
 logger = Logger('network')
 
 
-class NetworkRuntime(Runtime):
+class NetworkRuntime(ThreadedRuntime):
 
     def __init__(self, url):
         super().__init__()
