@@ -1,3 +1,5 @@
+import threading
+
 import pytest
 
 from tartpy.runtime import behavior, SimpleRuntime
@@ -151,3 +153,23 @@ def test_serial():
     assert first_behavior == (False, False, False)
     assert second_behavior == (True, False, False)
     assert third_behavior == (True, True, False)
+
+
+def test_runtime_event_loop():
+
+    @behavior
+    def null_beh(self, msg):
+        pass
+
+    success = False
+    def f():
+        nonlocal success
+        null = runtime.create(null_beh)
+        success = True
+
+    thread = threading.Thread(target=f)
+    thread.start()
+    thread.join()
+
+    assert success
+        
