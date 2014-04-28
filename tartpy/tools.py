@@ -23,7 +23,9 @@ class Wait(object):
 
     POLL_TIME = 0.01 # seconds
     
-    def __init__(self):
+    def __init__(self, timeout=None):
+        self.timeout = timeout or float('inf') # secs
+        self.now = time.time()
         self.state = None
 
     @behavior
@@ -31,7 +33,7 @@ class Wait(object):
         self.state = message
 
     def join(self):
-        while self.state is None:
+        while time.time() < self.now + self.timeout and self.state is None:
             time.sleep(self.POLL_TIME)
         return self.state
 
