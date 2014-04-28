@@ -24,7 +24,7 @@ class Wait(object):
     POLL_TIME = 0.01 # seconds
     
     def __init__(self, timeout=None):
-        self.timeout = timeout or float('inf') # secs
+        self.timeout = timeout if timeout is not None else float('inf') # secs
         self.now = time.time()
         self.state = None
 

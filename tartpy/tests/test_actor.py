@@ -4,7 +4,7 @@ import pytest
 
 from tartpy.runtime import behavior, SimpleRuntime
 from tartpy.eventloop import EventLoop
-
+from tartpy.tools import Wait
 
 runtime = SimpleRuntime()
 
@@ -172,4 +172,34 @@ def test_runtime_event_loop():
     thread.join()
 
     assert success
-        
+
+
+def test_wait():
+    w = Wait()
+    wait = runtime.create(w.wait_beh)
+    wait << 'foo'
+    EventLoop().run_once()
+    result = w.join()
+    assert result == 'foo'
+
+
+def test_wait_timeout_zero():
+    w = Wait(timeout=0)
+    wait = runtime.create(w.wait_beh)
+    EventLoop().run_once()
+    result = w.join()
+    assert result is None
+
+    w = Wait(timeout=0)
+    wait = runtime.create(w.wait_beh)
+    wait << 'foo'
+    EventLoop().run_once()
+    result = w.join()
+    assert result == 'foo'
+
+def test_wait_timout_nonzero():
+    w = Wait(timeout=0.5)
+    wait = runtime.create(w.wait_beh)
+    result = w.join()
+    assert result is None
+
