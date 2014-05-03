@@ -1,6 +1,6 @@
-=======
-tart.py
-=======
+======
+tartpy
+======
 
 Python implementation of the `Actor Model`_ inspired from `tart.js`_.
 
