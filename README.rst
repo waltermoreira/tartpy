@@ -56,9 +56,8 @@ Run example with:
 
    python3 tartpy/example.py
 
-There is also an `IPython notebook`_ showing the basic properties of actors.
-
-The project `actor_model`_ contains slides and IPython notebooks from
+The project `actor_model`_ contains slides with an introduction to
+the Actor Model, and an IPython notebook with more examples.  This was part of 
 a talk presented at TACC_ in April 17, 2014.
 
 
