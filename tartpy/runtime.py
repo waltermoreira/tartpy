@@ -37,6 +37,7 @@ example::
 
 """
 
+from collections.abc import MutableMapping
 from functools import wraps, partial
 import pprint
 import sys
@@ -138,6 +139,12 @@ class Actor(object):
         self.send(msg)
 
 
+class Message(dict):
+
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+
+
 def behavior(f):
     """Decorator for declaring a function as behavior.
 
@@ -151,5 +158,11 @@ def behavior(f):
     `x` and `y`.
 
     """
-    return f
+    @wraps(f)
+    def wrapper(*args):
+        message = args[-1]
+        if isinstance(message, MutableMapping):
+            message = Message(message)
+        f(*(args[:-1] + (message,)))
+    return wrapper
 

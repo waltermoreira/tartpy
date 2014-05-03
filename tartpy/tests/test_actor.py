@@ -203,3 +203,26 @@ def test_wait_timout_nonzero():
     result = w.join()
     assert result is None
 
+def test_attribute_access():
+    result = None
+    @behavior
+    def beh(self, message):
+        nonlocal result
+        result = message.result
+
+    actor = runtime.create(beh)
+    actor << {'foo': 4, 'result': True}
+    EventLoop().run_once()
+    assert result
+
+def test_integer_message_attribute():
+    result = None
+    @behavior
+    def beh(self, message):
+        nonlocal result
+        result = message
+
+    actor = runtime.create(beh)
+    actor << 2
+    EventLoop().run_once()
+    assert isinstance(result, int) and result == 2
